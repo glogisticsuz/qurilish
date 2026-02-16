@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  /* Uzum Brand Colors */
+  --color-primary: #7000FF;
+  --color-primary-hover: #5C00D6;
+  --color-primary-light: #F5EBFF;
+
+  --color-success: #00C853;
+  --color-success-hover: #00A843;
+
+  --color-warning: #FFB800;
+  --color-danger: #FF3B30;
+
+  /* Semantic - Backgrounds */
+  --color-bg-base: #F4F6F9;
+  --color-bg-paper: #FFFFFF;
+  --color-background: var(--bg-base);
+  --color-surface: var(--bg-paper);
+
+  /* Semantic - Text */
+  --color-text-primary: #1e1e1e;
+  --color-text-secondary: #757575;
+
+  /* Semantic - Borders */
+  --color-border-base: #E2E2E2;
+
+  /* Font */
+  --font-sans: 'Inter', sans-serif;
+}
+
+/* Custom Variant for Class-based Dark Mode */
+@variant dark (&:where(.dark, .dark *));
+
+/* Custom Utilities for Dark Mode compatibility */
+@layer base {
+  :root {
+    --bg-base: #F4F6F9;
+    --bg-paper: #FFFFFF;
+    --text-primary: #1e1e1e;
+    --text-secondary: #757575;
+    --border-base: #E2E2E2;
+  }
+
+  .dark {
+    --bg-base: #121212;
+    --bg-paper: #1E1E1E;
+    --text-primary: #FFFFFF;
+    --text-secondary: #A0A0A0;
+    --border-base: #333333;
+  }
+
+  body {
+    @apply font-sans;
+    background-color: var(--bg-base);
+    color: var(--text-primary);
+    transition: background-color 0.3s, color 0.3s;
+  }
+}
