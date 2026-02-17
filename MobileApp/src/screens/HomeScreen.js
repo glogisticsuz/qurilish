@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, FlatList, RefreshControl, StatusBar, Image, TouchableOpacity, TextInput, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, FlatList, RefreshControl, StatusBar, Image, TouchableOpacity, TextInput, Modal, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Search, Globe, HardHat, Truck, Box, ClipboardList, X, MapPin, ChevronDown, CheckCircle } from 'lucide-react-native';
+import { Search, Globe, HardHat, Truck, Box, ClipboardList, X, MapPin, ChevronDown, CheckCircle, Headset } from 'lucide-react-native';
 import { profileApi } from '../api/api';
 import { ProductCard, Button } from '../components/UIComponents';
 import BannerCarousel from '../components/BannerCarousel';
@@ -305,6 +305,13 @@ const HomeScreen = ({ navigation, route }) => {
                     ) : null
                 }
             />
+            {/* Floating Support Button */}
+            <TouchableOpacity
+                style={styles.supportButton}
+                onPress={() => Linking.openURL('https://t.me/Megastroy_support_user_bot')}
+            >
+                <Headset color="#fff" size={28} />
+            </TouchableOpacity>
         </SafeAreaView>
     );
 };
@@ -494,6 +501,23 @@ const styles = StyleSheet.create({
     emptyText: {
         color: '#9ca3af',
         fontSize: 16,
+    },
+    supportButton: {
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#7c3aed',
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#7c3aed',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.4,
+        shadowRadius: 8,
+        elevation: 10,
+        zIndex: 100,
     }
 });
 
