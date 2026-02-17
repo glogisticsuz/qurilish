@@ -6,6 +6,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from '@react-navigation/native';
 import { profileApi, authApi } from '../api/api';
 import { Button } from '../components/UIComponents';
+import { regions } from '../constants/regions';
+import { Modal, FlatList } from 'react-native';
 
 const PostAdScreen = ({ navigation }) => {
     const [user, setUser] = useState(null);
@@ -16,14 +18,32 @@ const PostAdScreen = ({ navigation }) => {
         price_type: 'soat',
         category_id: null,
         location: '',
+        description: '',
+        phone: '',
+        item_type: 'service',
     });
     const [images, setImages] = useState([]);
+    const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
+    const [isDistrictModalVisible, setIsDistrictModalVisible] = useState(false);
+    const [isPriceTypeModalVisible, setIsPriceTypeModalVisible] = useState(false);
+    const [selectedRegion, setSelectedRegion] = useState(null);
+
+    const priceTypes = [
+        { id: 'soat', name: 'soat' },
+        { id: 'kun', name: 'kun' },
+        { id: 'kv_metr', name: 'kv. metr' },
+        { id: 'tochka', name: 'tochka (nuqta)' },
+        { id: 'kub_metr', name: 'kub metr' },
+        { id: 'dona', name: 'dona' },
+        { id: 'xizmat', name: 'xizmat (umumiy)' },
+    ];
 
     const categories = [
         { id: 1, name: 'Ustalar', role: 'pro' },
         { id: 2, name: 'Texnika Ijarasi', role: 'supplier' },
         { id: 3, name: 'Qurilish Mollari', role: 'supplier' },
         { id: 4, name: 'Prorablar', role: 'pro' },
+        { id: 5, name: 'Ish e\'lonlari', role: 'customer' },
     ];
 
     useFocusEffect(
@@ -31,12 +51,17 @@ const PostAdScreen = ({ navigation }) => {
             authApi.getMe().then(res => {
                 console.log('Refetched User:', res.data);
                 setUser(res.data);
-                const filtered = categories.filter(c => c.role === res.data.role);
-                if (filtered.length > 0) {
-                    // Only set category if not already set or logic requires it
-                    if (!data.category_id) {
-                        setData(prev => ({ ...prev, category_id: filtered[0].id }));
-                    }
+
+                const userRole = res.data.role?.toLowerCase();
+                const filtered = categories.filter(c => c.role === userRole);
+
+                if (filtered.length > 0 && !data.category_id) {
+                    setData(prev => ({
+                        ...prev,
+                        category_id: filtered[0].id,
+                        phone: res.data.phone || '',
+                        item_type: userRole === 'customer' ? 'job_request' : 'service'
+                    }));
                 }
             });
         }, [])
@@ -55,7 +80,7 @@ const PostAdScreen = ({ navigation }) => {
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaType.Images,
+            mediaTypes: ['images'],
             allowsMultipleSelection: true,
             selectionLimit: 5 - images.length,
             quality: 0.8,
@@ -73,11 +98,18 @@ const PostAdScreen = ({ navigation }) => {
         setImages(newImages);
     };
 
-    const filteredCategories = categories.filter(c => c.role === user?.role);
+    const filteredCategories = categories.filter(c => c.role === user?.role?.toLowerCase());
 
     const handleSubmit = async () => {
-        if (!data.title || !data.category_id) {
-            Alert.alert('Xato', 'Iltimos, barcha maydonlarni to\'ldiring');
+        console.log('Submitting Data:', data);
+        console.log('Images Count:', images.length);
+
+        if (!data.title) {
+            Alert.alert('Xato', 'Sarlavhani kiriting');
+            return;
+        }
+        if (!data.category_id) {
+            Alert.alert('Xato', 'Kategoriyani tanlang (Ustalar, Texnika, va h.k.)');
             return;
         }
         if (images.length === 0) {
@@ -92,6 +124,9 @@ const PostAdScreen = ({ navigation }) => {
         formData.append('price_type', data.price_type);
         formData.append('location', data.location);
         formData.append('category_id', data.category_id);
+        formData.append('description', data.description);
+        formData.append('phone', data.phone);
+        formData.append('item_type', data.item_type);
 
         images.forEach((img, index) => {
             const fileName = img.split('/').pop();
@@ -99,7 +134,7 @@ const PostAdScreen = ({ navigation }) => {
             const type = match ? `image/${match[1]}` : `image/jpeg`;
 
             formData.append('files', {
-                uri: Platform.OS === 'ios' ? img.replace('file://', '') : img,
+                uri: Platform.OS === 'android' ? img : img.replace('file://', ''),
                 name: fileName,
                 type: type,
             });
@@ -121,30 +156,7 @@ const PostAdScreen = ({ navigation }) => {
     // Debugging user role
     console.log('Current User for PostAd:', user);
 
-    if (user && (user.role === 'customer' || user.role?.toLowerCase() === 'customer' || user.role === 'client')) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <View style={styles.header}>
-                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                        <ChevronLeft color="#111827" size={24} />
-                    </TouchableOpacity>
-                    <Text style={styles.headerTitle}>E'lon joylash</Text>
-                </View>
-                <View style={styles.deniedContainer}>
-                    <XCircle color="#ef4444" size={64} />
-                    <Text style={styles.deniedTitle}>Ruxsat berilmagan</Text>
-                    <Text style={styles.deniedText}>
-                        Mijoz hisobi orqali e'lon joylay olmaysiz. E'lon joylash uchun "Usta" yoki "Texnika egasi" sifatida ro'yxatdan o'tishingiz kerak.
-                    </Text>
-                    <Button
-                        title="Tushunarlik"
-                        onPress={() => navigation.goBack()}
-                        style={styles.deniedButton}
-                    />
-                </View>
-            </SafeAreaView>
-        );
-    }
+    // Customer restriction removed: they can now post job requests
 
     return (
         <SafeAreaView style={styles.container}>
@@ -192,23 +204,22 @@ const PostAdScreen = ({ navigation }) => {
                         />
                     </View>
 
-                    <View style={styles.row}>
-                        <View style={[styles.inputGroup, { flex: 1.5 }]}>
-                            <Text style={styles.label}>Narxi (so'm)</Text>
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Narxi va o'lchov birligi</Text>
+                        <View style={styles.row}>
                             <TextInput
-                                style={styles.input}
-                                placeholder="100 000"
+                                style={[styles.input, { flex: 1.5 }]}
+                                placeholder="Masalan: 50,000"
                                 keyboardType="numeric"
                                 value={data.price}
                                 onChangeText={t => setData({ ...data, price: t })}
                             />
-                        </View>
-                        <View style={[styles.inputGroup, { flex: 1 }]}>
-                            <Text style={styles.label}>Birlik</Text>
-                            <View style={styles.pickerContainer}>
-                                <Text style={styles.pickerText}>{data.price_type}</Text>
-                                <ChevronDown color="#9ca3af" size={16} />
-                            </View>
+                            <TextInput
+                                style={[styles.input, { flex: 1.2 }]}
+                                placeholder="soat, kv, kun..."
+                                value={data.price_type}
+                                onChangeText={t => setData({ ...data, price_type: t })}
+                            />
                         </View>
                     </View>
 
@@ -237,16 +248,41 @@ const PostAdScreen = ({ navigation }) => {
                     </View>
 
                     <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Manzil (Shahar/Tuman)</Text>
-                        <View style={styles.locationInput}>
+                        <Text style={styles.label}>To'liq ma'lumot (Tavsif)</Text>
+                        <TextInput
+                            style={[styles.input, { height: 120, textAlignVertical: 'top', paddingTop: 12 }]}
+                            placeholder="Ish e'loni yoki xizmat haqida to'liqroq ma'lumot bering..."
+                            value={data.description}
+                            onChangeText={t => setData({ ...data, description: t })}
+                            multiline={true}
+                            maxLength={1000}
+                        />
+                        <Text style={styles.charCount}>{data.description.length}/1000</Text>
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Aloqa uchun telefon</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="+998 90 123 45 67"
+                            keyboardType="phone-pad"
+                            value={data.phone}
+                            onChangeText={t => setData({ ...data, phone: t })}
+                        />
+                    </View>
+
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>Manzil (Hudud)</Text>
+                        <TouchableOpacity
+                            style={styles.locationInput}
+                            onPress={() => setIsRegionModalVisible(true)}
+                        >
                             <MapPin color="#7c3aed" size={20} />
-                            <TextInput
-                                style={styles.inputInline}
-                                placeholder="Masalan: Chirchiq shahri"
-                                value={data.location}
-                                onChangeText={t => setData({ ...data, location: t })}
-                            />
-                        </View>
+                            <Text style={[styles.inputInline, !data.location && { color: '#9ca3af' }]}>
+                                {data.location || "Hududni tanlang"}
+                            </Text>
+                            <ChevronDown color="#9ca3af" size={16} />
+                        </TouchableOpacity>
                     </View>
 
                     <Button
@@ -257,6 +293,65 @@ const PostAdScreen = ({ navigation }) => {
                     />
                 </View>
             </ScrollView>
+
+            {/* Region Modal */}
+            <Modal visible={isRegionModalVisible} animationType="slide" transparent={true}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Hududni tanlang</Text>
+                            <TouchableOpacity onPress={() => setIsRegionModalVisible(false)}>
+                                <X color="#111827" size={24} />
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={regions.filter(r => r.id !== 'all')}
+                            keyExtractor={item => item.id}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={styles.modalItem}
+                                    onPress={() => {
+                                        setSelectedRegion(item);
+                                        setIsRegionModalVisible(false);
+                                        setIsDistrictModalVisible(true);
+                                    }}
+                                >
+                                    <Text style={styles.modalItemText}>{item.name}</Text>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    </View>
+                </View>
+            </Modal>
+
+            {/* District Modal */}
+            <Modal visible={isDistrictModalVisible} animationType="slide" transparent={true}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>Tumanni tanlang</Text>
+                            <TouchableOpacity onPress={() => setIsDistrictModalVisible(false)}>
+                                <X color="#111827" size={24} />
+                            </TouchableOpacity>
+                        </View>
+                        <FlatList
+                            data={selectedRegion?.districts || []}
+                            keyExtractor={item => item}
+                            renderItem={({ item }) => (
+                                <TouchableOpacity
+                                    style={styles.modalItem}
+                                    onPress={() => {
+                                        setData({ ...data, location: `${selectedRegion.name}, ${item}` });
+                                        setIsDistrictModalVisible(false);
+                                    }}
+                                >
+                                    <Text style={styles.modalItemText}>{item}</Text>
+                                </TouchableOpacity>
+                            )}
+                        />
+                    </View>
+                </View>
+            </Modal>
         </SafeAreaView>
     );
 };
@@ -379,22 +474,6 @@ const styles = StyleSheet.create({
         borderRadius: 16,
         paddingHorizontal: 16,
     },
-    pickerContainer: {
-        height: 56,
-        backgroundColor: '#f9fafb',
-        borderWidth: 1,
-        borderColor: '#f3f4f6',
-        borderRadius: 16,
-        paddingHorizontal: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-    },
-    pickerText: {
-        fontSize: 16,
-        color: '#111827',
-        fontWeight: '600',
-    },
     categoryGrid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
@@ -430,30 +509,44 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         marginTop: 10,
     },
-    deniedContainer: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        padding: 24,
+    charCount: {
+        textAlign: 'right',
+        fontSize: 12,
+        color: '#9ca3af',
+        marginTop: 4,
     },
-    deniedTitle: {
-        fontSize: 24,
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'flex-end',
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        padding: 24,
+        maxHeight: '80%',
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    modalTitle: {
+        fontSize: 20,
         fontWeight: 'bold',
         color: '#111827',
-        marginTop: 16,
-        marginBottom: 8,
     },
-    deniedText: {
+    modalItem: {
+        paddingVertical: 16,
+        borderBottomWidth: 1,
+        borderBottomColor: '#f3f4f6',
+    },
+    modalItemText: {
         fontSize: 16,
-        color: '#6b7280',
-        textAlign: 'center',
-        marginBottom: 32,
-        lineHeight: 24,
+        color: '#4b5563',
     },
-    deniedButton: {
-        width: '100%',
-        height: 56,
-    }
 });
 
 export default PostAdScreen;

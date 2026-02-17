@@ -13,6 +13,7 @@ const categories = [
     { id: 2, name: 'Texnika', icon: Truck },
     { id: 3, name: 'Materiallar', icon: Box },
     { id: 4, name: 'Prorablar', icon: ClipboardList },
+    { id: 5, name: 'Ish e\'lonlari', icon: MapPin },
 ];
 
 const HomeScreen = ({ navigation, route }) => {
@@ -263,19 +264,23 @@ const HomeScreen = ({ navigation, route }) => {
                         <ProductCard
                             title={item.title}
                             price={item.price ? `${item.price.toLocaleString()} so'm` : 'Kelishilgan'}
-                            location={item.profile?.region || 'O\'zbekiston'}
+                            location={item.location || item.profile?.region || 'O\'zbekiston'}
                             image={item.image_url1}
                             ownerName={item.profile?.full_name || 'Foydalanuvchi'}
                             isVerified={Boolean(item.profile?.is_verified)}
+                            description={item.description}
                             onClick={() => navigation.navigate('ProductDetail', {
                                 item: {
                                     ...item,
                                     image: item.image_url1,
                                     price: item.price ? `${item.price.toLocaleString()} so'm` : 'Kelishilgan',
-                                    location: item.profile?.region || 'O\'zbekiston',
+                                    location: item.location || item.profile?.region || 'O\'zbekiston',
                                     ownerName: item.profile?.full_name || 'Foydalanuvchi',
                                     isVerified: Boolean(item.profile?.is_verified),
-                                    userId: item.profile?.user_id
+                                    userId: item.profile?.user_id,
+                                    description: item.description,
+                                    phone: item.phone,
+                                    profile: item.profile
                                 }
                             })}
                         />

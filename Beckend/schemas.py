@@ -57,6 +57,9 @@ class PortfolioItemBase(BaseModel):
     price_type: Optional[str] = None
     location: Optional[str] = None
     status: Optional[str] = "available"
+    description: Optional[str] = None
+    item_type: Optional[str] = "service"
+    phone: Optional[str] = None
     category_id: Optional[int] = None
 
 class PortfolioItemCreate(PortfolioItemBase):

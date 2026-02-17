@@ -73,15 +73,20 @@ const ProductDetailScreen = ({ route, navigation }) => {
 
                     <Text style={styles.title}>{item.title}</Text>
 
+                    {/* Instagram-style Description right under title */}
+                    <Text style={styles.description}>
+                        {item.description || "Ushbu xizmat/mahsulot MegaStroy platformasi orqali kafolatlangan va sinovdan o'tgan mutaxassislar tomonidan taqdim etiladi."}
+                    </Text>
+
                     <View style={styles.locationRow}>
                         <MapPin color="#7c3aed" size={16} />
                         <Text style={styles.location}>{item.location}</Text>
                     </View>
 
-                    {(item.profile?.user?.phone || item.phone) && (
+                    {(item.phone || item.profile?.user?.phone) && (
                         <View style={[styles.locationRow, { marginTop: -10 }]}>
                             <Text style={{ color: '#7c3aed', fontWeight: 'bold' }}>Tel: </Text>
-                            <Text style={styles.location}>{item.profile?.user?.phone || item.phone}</Text>
+                            <Text style={styles.location}>{item.phone || item.profile?.user?.phone}</Text>
                         </View>
                     )}
 
@@ -90,7 +95,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
                     {/* Owner Info */}
                     <TouchableOpacity
                         style={styles.ownerCard}
-                        onPress={() => { }} // TODO: User profile
+                        onPress={() => navigation.navigate('PublicProfile', { userId: item.userId || item.profile?.user_id || 1 })}
                     >
                         <View style={styles.ownerAvatar}>
                             <Text style={styles.avatarInitial}>{item.ownerName?.[0] || 'U'}</Text>
@@ -105,13 +110,12 @@ const ProductDetailScreen = ({ route, navigation }) => {
                         <ChevronLeft color="#9ca3af" size={20} style={{ transform: [{ rotate: '180deg' }] }} />
                     </TouchableOpacity>
 
-                    <View style={styles.divider} />
-
-                    {/* Description */}
-                    <Text style={styles.sectionTitle}>Tavsif</Text>
-                    <Text style={styles.description}>
-                        Ushbu xizmat/mahsulot MegaStroy platformasi orqali kafolatlangan va sinovdan o'tgan mutaxassislar tomonidan taqdim etiladi. Batafsil ma'lumot olish uchun bog'laning.
-                    </Text>
+                    {item.profile?.bio ? (
+                        <View style={styles.bioContainer}>
+                            <Text style={styles.bioLabel}>Mutaxassis haqida:</Text>
+                            <Text style={styles.bioText}>{item.profile.bio}</Text>
+                        </View>
+                    ) : null}
 
                     <View style={styles.divider} />
 
@@ -152,7 +156,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
                     title="BOG'LANISH"
                     style={styles.callButton}
                     onPress={() => {
-                        const phoneNumber = item.profile?.user?.phone || item.phone;
+                        const phoneNumber = item.phone || item.profile?.user?.phone;
                         if (phoneNumber) {
                             Linking.openURL(`tel:${phoneNumber}`);
                         } else {
@@ -320,6 +324,27 @@ const styles = StyleSheet.create({
         fontSize: 15,
         color: '#4b5563',
         lineHeight: 24,
+    },
+    bioContainer: {
+        backgroundColor: '#f3f4f6',
+        padding: 16,
+        borderRadius: 16,
+        marginTop: 12,
+        borderLeftWidth: 4,
+        borderLeftColor: '#7c3aed',
+    },
+    bioLabel: {
+        fontSize: 12,
+        fontWeight: 'bold',
+        color: '#7c3aed',
+        marginBottom: 4,
+        textTransform: 'uppercase',
+    },
+    bioText: {
+        fontSize: 14,
+        color: '#4b5563',
+        lineHeight: 20,
+        fontStyle: 'italic',
     },
     bottomBar: {
         flexDirection: 'row',

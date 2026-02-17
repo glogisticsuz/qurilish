@@ -38,12 +38,12 @@ export const profileApi = {
     getPublicProfile: (userId) => api.get(`/profiles/${userId}`),
     getUserPortfolio: (userId) => api.get(`/profiles/${userId}/portfolio`),
     getMyPortfolio: () => api.get('/profiles/me/portfolio'),
-    uploadPortfolio: (formData) => api.post('/portfolio/upload', formData, {
+    uploadPortfolio: (formData) => api.post('/api/profile/portfolio', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
-    getAllItems: (category) => api.get('/portfolio/all', { params: { category } }),
-    deletePortfolio: (itemId) => api.delete(`/portfolio/${itemId}`),
-    updatePortfolio: (itemId, formData) => api.put(`/portfolio/${itemId}`, formData, {
+    getAllItems: (category_id) => api.get('/api/items', { params: { category_id } }),
+    deletePortfolio: (itemId) => api.delete(`/api/items/${itemId}`),
+    updatePortfolio: (itemId, formData) => api.put(`/api/items/${itemId}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
 };

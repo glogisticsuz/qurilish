@@ -1,17 +1,40 @@
 import os
 import io
-from imagekitio import ImageKit
+from imagekitio import AsyncImageKit
 from dotenv import load_dotenv
 from PIL import Image
 import logging
+import anyio
 
 logger = logging.getLogger(__name__)
 
 load_dotenv()
 
-imagekit = ImageKit(
-    private_key=os.getenv("IMAGEKIT_PRIVATE_KEY")
+imagekit = AsyncImageKit(
+    private_key=os.getenv("IMAGEKIT_PRIVATE_KEY"),
+    timeout=300.0,
+    max_retries=0
 )
+
+def compress_image(file_content, quality=75):
+    """
+    Compresses image to JPEG with specified quality.
+    """
+    try:
+        img = Image.open(io.BytesIO(file_content))
+        if img.mode in ("RGBA", "P"):
+            img = img.convert("RGB")
+        
+        # Max dimensions 3000px
+        if img.width > 3000 or img.height > 3000:
+            img.thumbnail((3000, 3000), Image.Resampling.LANCZOS)
+            
+        output = io.BytesIO()
+        img.save(output, format="JPEG", quality=quality, optimize=True)
+        return output.getvalue()
+    except Exception as e:
+        logger.error(f"Compression error: {e}")
+        return file_content
 
 def apply_watermark(file_content):
     """
@@ -63,36 +86,43 @@ def apply_watermark(file_content):
         return output.getvalue()
         
     except Exception as e:
-        print(f"Watermark error: {e}")
+        logger.error(f"Watermark error: {e}")
         return file_content
 
-def upload_image(file_content, file_name, folder="/megastroy", apply_logo=True):
+async def upload_image(file_content, file_name, folder="/megastroy", apply_logo=False):
     """
     Uploads a file to ImageKit and returns the URL.
     """
     try:
+        # Compress image to optimize upload speed (essential for large PNGs/JPEGs)
+        file_content = await anyio.to_thread.run_sync(compress_image, file_content)
+
         # Apply watermark if requested
         if apply_logo:
-            file_content = apply_watermark(file_content)
+            # Run watermark (CPU intensive) in a separate thread to avoid blocking loop
+            file_content = await anyio.to_thread.run_sync(apply_watermark, file_content)
 
-        upload = imagekit.files.upload(
+        size_kb = len(file_content) / 1024
+        logger.info(f"Starting ImageKit upload for {file_name} (Size: {size_kb:.2f} KB)...")
+        upload = await imagekit.files.upload(
             file=file_content,
             file_name=file_name,
             folder=folder,
             use_unique_file_name=True
         )
+        logger.info(f"ImageKit upload successful for {file_name}: {upload.url}")
         return upload.url
     except Exception as e:
         logger.error(f"ImageKit upload error: {e}", exc_info=True)
         return None
 
-def delete_image(file_id):
+async def delete_image(file_id):
     """
     Deletes an image from ImageKit.
     """
     try:
-        imagekit.delete_file(file_id)
+        await imagekit.files.delete(file_id)
         return True
     except Exception as e:
-        print(f"ImageKit delete error: {e}")
+        logger.error(f"ImageKit delete error: {e}")
         return False

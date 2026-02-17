@@ -14,6 +14,8 @@ const EditProfileScreen = ({ navigation }) => {
         region: '',
         district: '',
         avatar_url: null,
+        bio: '',
+        phone: '',
     });
     // Role field removed to avoid confusion
     const [isRegionModalVisible, setIsRegionModalVisible] = useState(false);
@@ -34,6 +36,7 @@ const EditProfileScreen = ({ navigation }) => {
                 region: profileRes.data.region || '',
                 district: profileRes.data.district || '',
                 avatar_url: profileRes.data.avatar_url,
+                bio: profileRes.data.bio || '',
                 phone: userRes.data.phone || '',
             });
         } catch (error) {
@@ -50,7 +53,7 @@ const EditProfileScreen = ({ navigation }) => {
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaType.Images,
+            mediaTypes: ['images'],
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.8,
@@ -98,6 +101,7 @@ const EditProfileScreen = ({ navigation }) => {
                 full_name: data.full_name,
                 region: data.region,
                 district: data.district,
+                bio: data.bio,
             });
             Alert.alert('Muvaffaqiyat', 'Profil saqlandi', [
                 { text: 'OK', onPress: () => navigation.goBack() }
@@ -199,6 +203,21 @@ const EditProfileScreen = ({ navigation }) => {
                             </TouchableOpacity>
                         </View>
                     ) : null}
+
+                    {/* Show Bio only for Pros and Suppliers (optional choice, user said "coustmerdan boshqa larni rasmini tagida biosi bolsin") */}
+                    {/* But we allow everyone to edit Bio, just show it on Detail screen for non-customers if needed */}
+                    <View style={styles.inputGroup}>
+                        <Text style={styles.label}>O'zingiz haqingizda (Bio)</Text>
+                        <TextInput
+                            style={[styles.input, { height: 100, textAlignVertical: 'top', paddingTop: 12 }]}
+                            value={data.bio}
+                            onChangeText={t => setData({ ...data, bio: t })}
+                            placeholder="Mutaxassisligingiz va tajribangiz haqida yozing"
+                            multiline={true}
+                            maxLength={1000}
+                        />
+                        <Text style={styles.helperText}>{data.bio.length}/1000</Text>
+                    </View>
 
                     <Button
                         title={loading ? "SAQLANMOQDA..." : "SAQLASH"}

@@ -68,8 +68,10 @@ class PortfolioItem(Base):
     price = Column(Float, nullable=True)
     price_type = Column(String, nullable=True)
     location = Column(String, nullable=True)
-    status = Column(String, default="available")
+    description = Column(Text, nullable=True)
+    item_type = Column(String, default="service") # service or job_request
     category_id = Column(Integer, nullable=True)
+    phone = Column(String, nullable=True)
     
     profile = relationship("Profile", back_populates="items")
 

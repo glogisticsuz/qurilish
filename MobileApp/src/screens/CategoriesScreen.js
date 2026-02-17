@@ -1,12 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
-import { HardHat, Truck, Box, ClipboardList, ChevronRight } from 'lucide-react-native';
+import { HardHat, Truck, Box, ClipboardList, ChevronRight, MapPin } from 'lucide-react-native';
 
 const CATEGORIES = [
     { id: 1, name: 'Ustalar', icon: HardHat, color: '#7c3aed', count: '1,240' },
     { id: 2, name: 'Texnika Ijarasi', icon: Truck, color: '#10b981', count: '450' },
     { id: 3, name: 'Qurilish Mollari', icon: Box, color: '#f59e0b', count: '2,100' },
     { id: 4, name: 'Prorablar', icon: ClipboardList, color: '#3b82f6', count: '180' },
+    { id: 5, name: 'Ish e\'lonlari', icon: MapPin, color: '#ef4444', count: '90' },
 ];
 
 const CategoriesScreen = ({ navigation }) => {

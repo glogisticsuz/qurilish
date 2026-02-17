@@ -16,6 +16,7 @@ import ProductDetailScreen from '../screens/ProductDetailScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
 import PrivacyPolicyScreen from '../screens/PrivacyPolicyScreen';
 import TermsScreen from '../screens/TermsScreen';
+import PublicProfileScreen from '../screens/PublicProfileScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -98,6 +99,7 @@ const AppNavigator = () => {
                 <Stack.Screen name="EditProfile" component={EditProfileScreen} />
                 <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
                 <Stack.Screen name="Terms" component={TermsScreen} />
+                <Stack.Screen name="PublicProfile" component={PublicProfileScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

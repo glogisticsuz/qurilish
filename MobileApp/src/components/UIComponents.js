@@ -15,12 +15,17 @@ export const Button = ({ title, onPress, variant = 'primary', style }) => (
     </TouchableOpacity>
 );
 
-export const ProductCard = ({ title, price, location, image, ownerName, isVerified, onClick }) => (
+export const ProductCard = ({ title, price, location, image, ownerName, isVerified, description, onClick }) => (
     <TouchableOpacity style={styles.card} onPress={onClick}>
         <Image source={{ uri: image }} style={styles.cardImage} />
         <View style={styles.cardContent}>
             <Text style={styles.cardPrice}>{price}</Text>
             <Text style={styles.cardTitle} numberOfLines={1}>{title}</Text>
+            {description ? (
+                <Text style={styles.cardDescription} numberOfLines={2}>
+                    {description}
+                </Text>
+            ) : null}
             <View style={styles.cardFooter}>
                 <Text style={styles.cardLocation}>{location}</Text>
             </View>
@@ -89,6 +94,12 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#1f2937',
         marginVertical: 4,
+    },
+    cardDescription: {
+        fontSize: 12,
+        color: '#4b5563',
+        marginVertical: 4,
+        lineHeight: 16,
     },
     cardLocation: {
         fontSize: 10,

@@ -69,7 +69,6 @@ function App() {
             }
           />
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/terms" element={<Terms />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

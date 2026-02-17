@@ -112,7 +112,7 @@ async def create_ad(
 ):
     """Create new advertisement"""
     file_content = await file.read()
-    image_url = image_utils.upload_image(file_content, file.filename)
+    image_url = await image_utils.upload_image(file_content, file.filename)
     
     if not image_url:
         raise HTTPException(status_code=500, detail="Image upload failed")

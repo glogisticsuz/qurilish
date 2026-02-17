@@ -4,7 +4,7 @@ import { Button, Card, ProductCard, LanguageSelector, Spinner, ThemeToggle } fro
 import SplashAd from '../components/SplashAd';
 import BannerCarousel from '../components/BannerCarousel';
 import InlineAd from '../components/InlineAd';
-import { profileApi } from '../api/api';
+import api, { profileApi } from '../api/api';
 import { useTranslation } from '../utils/i18n';
 import { useTheme } from '../hooks/useTheme';
 
@@ -46,9 +46,8 @@ const Home = () => {
 
     const fetchInlineAds = async () => {
         try {
-            const res = await fetch(`${API_URL}/ads/inline`);
-            const data = await res.json();
-            setInlineAds(data || []);
+            const res = await api.get('/ads/inline');
+            setInlineAds(res.data || []);
         } catch (error) {
             console.error("Error fetching inline ads:", error);
         }

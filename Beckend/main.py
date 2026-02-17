@@ -203,17 +203,21 @@ async def get_user_portfolio(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Profil topilmadi")
     return profile.items
 
-@app.post("/portfolio/upload", response_model=schemas.PortfolioItem)
-async def upload_portfolio_item(
+@app.post("/api/profile/portfolio", response_model=schemas.PortfolioItem)
+async def upload_portfolio(
     title: str = Form(...),
-    price: Optional[float] = Form(None),
-    price_type: Optional[str] = Form(None),
-    location: Optional[str] = Form(None),
-    category_id: Optional[int] = Form(None),
+    price: float = Form(0),
+    price_type: str = Form("soat"),
+    location: str = Form(""),
+    category_id: int = Form(...),
+    description: str = Form(""),
+    item_type: str = Form("service"),
+    phone: str = Form(""),
     files: List[UploadFile] = File(...),
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(auth.get_current_user)
+    current_user: models.User = Depends(auth.get_current_user),
+    db: Session = Depends(get_db)
 ):
+    logger.info(f"Upload portfolio started for user: {current_user.id}, title: {title}, files_count: {len(files)}")
     profile = db.query(models.Profile).filter(models.Profile.user_id == current_user.id).first()
     if not profile:
         profile = models.Profile(user_id=current_user.id)
@@ -221,48 +225,63 @@ async def upload_portfolio_item(
         db.commit()
         db.refresh(profile)
     
-    image_urls = []
-    # Limit to 5 images
-    for file in files[:5]:
-        file_content = await file.read()
-        image_url = image_utils.upload_image(file_content, file.filename)
-        if image_url:
-            image_urls.append(image_url)
+    import asyncio
+    
+    async def process_file(file):
+        content = await file.read()
+        return await image_utils.upload_image(content, file.filename)
+
+    # Limit to 5 images and process in parallel
+    tasks = [process_file(f) for f in files[:5]]
+    image_urls = await asyncio.gather(*tasks)
+    
+    # Filter out None results (failed uploads)
+    image_urls = [url for url in image_urls if url]
     
     if not image_urls:
+        logger.error(f"No images uploaded correctly for user {current_user.id}")
         raise HTTPException(status_code=500, detail="Hech bo'lmaganda bitta rasmni yuklashda xatolik yuz berdi")
+    
+    logger.info(f"Successfully uploaded {len(image_urls)} images for user {current_user.id}")
     
     # Pad images list to 5 items with None
     while len(image_urls) < 5:
         image_urls.append(None)
+
+    image_links = {f"image_url{i+1}": url for i, url in enumerate(image_urls)}
     
     new_item = models.PortfolioItem(
-        profile_id=profile.id,
+        profile_id=profile.id, # Use the profile object obtained or created above
         title=title,
-        image_url1=image_urls[0],
-        image_url2=image_urls[1],
-        image_url3=image_urls[2],
-        image_url4=image_urls[3],
-        image_url5=image_urls[4],
         price=price,
         price_type=price_type,
         location=location,
-        category_id=category_id
+        category_id=category_id,
+        description=description,
+        item_type=item_type,
+        phone=phone,
+        **image_links
     )
     db.add(new_item)
     db.commit()
     db.refresh(new_item)
     return new_item
 
-@app.get("/portfolio/all", response_model=List[schemas.PortfolioItemPublic])
-async def get_all_portfolio_items(category: Optional[int] = None, db: Session = Depends(get_db)):
+@app.get("/api/items", response_model=List[schemas.PortfolioItemPublic])
+async def get_all_items(
+    category_id: Optional[int] = None,
+    item_type: Optional[str] = None,
+    db: Session = Depends(database.get_db)
+):
     query = db.query(models.PortfolioItem).join(models.Profile)
-    if category:
-        query = query.filter(models.PortfolioItem.category_id == category)
-    return query.all()
+    if category_id:
+        query = query.filter(models.PortfolioItem.category_id == category_id)
+    if item_type:
+        query = query.filter(models.PortfolioItem.item_type == item_type)
+    return query.order_by(models.PortfolioItem.id.desc()).all()
 
-@app.delete("/portfolio/{item_id}")
-async def delete_portfolio_item(item_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+@app.delete("/api/items/{item_id}")
+async def delete_portfolio_item(item_id: int, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     item = db.query(models.PortfolioItem).join(models.Profile).filter(
         models.PortfolioItem.id == item_id,
         models.Profile.user_id == current_user.id
