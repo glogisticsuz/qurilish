@@ -1,20 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from './UIComponents';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const BannerCarousel = () => {
-    const [ads, setAds] = useState([]); // Renamed from banners to ads
+    const [ads, setAds] = useState([]);
     const [currentIndex, setCurrentIndex] = useState(0);
 
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
     useEffect(() => {
-        // Fetch banner ads
         fetch(`${API_URL}/ads/banners`)
             .then(res => res.json())
             .then(data => {
-                setAds(data); // Changed from setBanners to setAds
-                if (data.length > 0) {
-                    // Track view for first banner
+                setAds(data || []);
+                if (data && data.length > 0) {
                     fetch(`${API_URL}/ads/${data[0].id}/view`, { method: 'POST' });
                 }
             })
@@ -22,117 +20,91 @@ const BannerCarousel = () => {
     }, []);
 
     useEffect(() => {
-        if (ads.length === 0) return; // Changed from banners.length to ads.length
+        if (ads.length <= 1) return;
 
         const interval = setInterval(() => {
-            setCurrentIndex((prev) => (prev + 1) % ads.length); // Changed from banners.length to ads.length
-        }, 5000); // Change every 5 seconds
+            const nextIndex = (currentIndex + 1) % ads.length;
+            setCurrentIndex(nextIndex);
+            fetch(`${API_URL}/ads/${ads[nextIndex].id}/view`, { method: 'POST' });
+        }, 5000);
 
         return () => clearInterval(interval);
-    }, [ads]); // Changed from banners to ads
+    }, [ads, currentIndex]);
 
-    // Track view when index changes - This useEffect is replaced by nextSlide/prevSlide logic in the instruction,
-    // but the instruction snippet doesn't fully replace it in a way that makes sense for auto-play.
-    // Keeping the original useEffect for auto-play view tracking, and adding the new functions.
-    useEffect(() => {
-        if (ads.length > 0) { // Changed from banners.length to ads.length
-            const currentBanner = ads[currentIndex]; // Changed from banners to ads
-            fetch(`${API_URL}/ads/${currentBanner.id}/view`, { method: 'POST' });
-        }
-    }, [currentIndex, ads]); // Changed from banners to ads
-
-    // New functions from the instruction, assuming they are for manual navigation if implemented later
-    const nextSlide = () => {
-        const nextIndex = (currentIndex + 1) % ads.length;
-        setCurrentIndex(nextIndex);
-        const nextBanner = ads[nextIndex];
-        fetch(`${API_URL}/ads/${nextBanner.id}/view`, { method: 'POST' });
-    };
-
-    const prevSlide = () => {
-        const prevIndex = (currentIndex - 1 + ads.length) % ads.length;
-        setCurrentIndex(prevIndex);
-        const prevBanner = ads[prevIndex];
-        fetch(`${API_URL}/ads/${prevBanner.id}/view`, { method: 'POST' });
-    };
-
-    const handleBannerClick = (banner) => { // Renamed from handleClick to handleBannerClick
+    const handleBannerClick = (banner) => {
         if (banner.link_url) {
             fetch(`${API_URL}/ads/${banner.id}/click`, { method: 'POST' });
             window.open(banner.link_url, '_blank');
         }
     };
 
-    if (ads.length === 0) return null; // Changed from banners.length to ads.length
+    if (ads.length === 0) return null;
 
-    // Helper to determine position class
-    const getPositionClass = (index) => {
-        if (banners.length === 1) return 'left-1/2 -translate-x-1/2 z-20 scale-100 opacity-100';
-
-        const diff = (index - currentIndex + banners.length) % banners.length;
-
-        if (diff === 0) return 'left-1/2 -translate-x-1/2 z-20 scale-100 opacity-100'; // Center
-        if (diff === 1) return 'left-[85%] -translate-x-1/2 z-10 scale-75 opacity-70'; // Right
-        if (diff === banners.length - 1) return 'left-[15%] -translate-x-1/2 z-10 scale-75 opacity-70'; // Left
-
-        return 'left-1/2 -translate-x-1/2 scale-50 opacity-0 z-0 hidden'; // Others
-    };
+    const currentBanner = ads[currentIndex];
 
     return (
-        <div className="relative w-full h-48 md:h-80 overflow-hidden flex items-center justify-center my-6">
-            <div className="relative w-full h-full max-w-6xl mx-auto">
-                {banners.map((banner, index) => {
-                    const positionClass = getPositionClass(index);
+        <div className="relative w-full aspect-[21/9] md:aspect-[3/1] bg-gray-100 rounded-[24px] overflow-hidden group shadow-lg">
+            {currentBanner.media_type === 'video' ? (
+                <video
+                    src={currentBanner.image_url}
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                />
+            ) : (
+                <img
+                    src={currentBanner.image_url}
+                    alt={currentBanner.title}
+                    className="w-full h-full object-cover"
+                />
+            )}
 
-                    return (
-                        <div
-                            key={banner.id}
-                            onClick={() => handleClick(banner)}
-                            className={`absolute top-0 transition-all duration-700 ease-in-out cursor-pointer w-full md:w-3/4 h-full rounded-2xl overflow-hidden shadow-2xl ${positionClass}`}
-                            style={{
-                                width: '70%', // Force width for the cards
-                                maxWidth: '800px'
-                            }}
-                        >
-                            {banner.media_type === 'video' ? (
-                                <video
-                                    src={banner.image_url}
-                                    className="w-full h-full object-cover"
-                                    autoPlay
-                                    muted
-                                    loop
-                                    playsInline
-                                />
-                            ) : (
-                                <img
-                                    src={banner.image_url}
-                                    alt={banner.title}
-                                    className="w-full h-full object-cover"
-                                />
-                            )}
-
-                            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-6 flex flex-col justify-end h-1/2">
-                                <h3 className="text-white font-bold text-lg md:text-2xl">{banner.title}</h3>
-                                <div className="mt-2">
-                                    <span className="px-2 py-1 bg-purple-600 text-white text-xs rounded-md">Reklama</span>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })}
+            {/* Content Overlay */}
+            <div
+                onClick={() => handleBannerClick(currentBanner)}
+                className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex flex-col justify-end p-6 cursor-pointer"
+            >
+                <div className="flex items-center gap-2 mb-1">
+                    <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-md border border-white/20">
+                        Reklama
+                    </span>
+                </div>
+                <h3 className="text-white text-lg md:text-2xl font-black leading-tight drop-shadow-md">
+                    {currentBanner.title}
+                </h3>
             </div>
 
-            {/* Navigation Dots */}
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-30">
-                {banners.map((_, index) => (
+            {/* Navigation Buttons */}
+            {ads.length > 1 && (
+                <>
                     <button
-                        key={index}
-                        onClick={() => setCurrentIndex(index)}
-                        className={`w-2 h-2 rounded-full transition-all duration-300 ${index === currentIndex ? 'bg-white w-8' : 'bg-white/50 hover:bg-white/80'
-                            }`}
-                    />
-                ))}
-            </div>
+                        onClick={() => setCurrentIndex((currentIndex - 1 + ads.length) % ads.length)}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full items-center justify-center text-white hidden group-hover:flex transition-all"
+                    >
+                        <ChevronLeft size={24} />
+                    </button>
+                    <button
+                        onClick={() => setCurrentIndex((currentIndex + 1) % ads.length)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full items-center justify-center text-white hidden group-hover:flex transition-all"
+                    >
+                        <ChevronRight size={24} />
+                    </button>
+                </>
+            )}
+
+            {/* Dots */}
+            {ads.length > 1 && (
+                <div className="absolute bottom-4 left-6 flex gap-1.5">
+                    {ads.map((_, idx) => (
+                        <div
+                            key={idx}
+                            className={`h-1 rounded-full transition-all duration-300 ${idx === currentIndex ? 'w-6 bg-white' : 'w-2 bg-white/40'}`}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 };

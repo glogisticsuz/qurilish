@@ -1,8 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Button, Input, GlassCard, Badge } from '../components/UIComponents';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { profileApi, authApi } from '../api/api';
-import { Plus, Trash2, Camera, MapPin, Briefcase, ChevronDown } from 'lucide-react';
+import { Button, Input, Spinner } from '../components/UIComponents';
+import {
+    Camera,
+    MapPin,
+    Briefcase,
+    Trash2,
+    LogOut,
+    Settings,
+    Plus,
+    ChevronLeft,
+    ChevronDown,
+    ShieldCheck,
+    Image as ImageIcon,
+    Home as HomeIcon,
+    ClipboardList,
+    MessageSquare,
+    User,
+    DollarSign,
+    Layers,
+    Search
+} from 'lucide-react';
 
 const Dashboard = () => {
     const navigate = useNavigate();
@@ -11,24 +30,21 @@ const Dashboard = () => {
     const [portfolio, setPortfolio] = useState([]);
     const [loading, setLoading] = useState(true);
     const [uploading, setUploading] = useState(false);
+    const [activeTab, setActiveTab] = useState('ads'); // 'ads' or 'upload'
 
     const [newItem, setNewItem] = useState({ title: '', price: '', price_type: 'soat', category_id: 1 });
     const [file, setFile] = useState(null);
+    const fileInputRef = useRef();
 
     const categories = [
         { id: 1, name: 'Ustalar', icon: '👷', role: 'pro' },
-        { id: 2, name: 'Texnika Ijarasi', icon: '🚜', role: 'supplier' },
-        { id: 3, name: 'Qurilish Mollari', icon: '🧱', role: 'supplier' },
+        { id: 2, name: 'Texnika ijarasi', icon: '🚜', role: 'supplier' },
+        { id: 3, name: 'Qurilish mollari', icon: '🧱', role: 'supplier' },
         { id: 4, name: 'Prorablar', icon: '📋', role: 'pro' },
+        { id: 6, name: 'Boshqa xizmatlar', icon: '🛠️', role: 'pro' }
     ];
 
-    const filteredCategories = categories.filter(c => c.role === user?.role);
-
-    useEffect(() => {
-        if (user && filteredCategories.length > 0 && !newItem.category_id) {
-            setNewItem(prev => ({ ...prev, category_id: filteredCategories[0].id }));
-        }
-    }, [user]);
+    const filteredCategories = categories.filter(c => c.role === user?.role || user?.role === 'admin');
 
     useEffect(() => {
         fetchData();
@@ -43,7 +59,7 @@ const Dashboard = () => {
             ]);
             setUser(userRes.data);
             setProfile(profileRes.data);
-            setPortfolio(portfolioRes.data);
+            setPortfolio(portfolioRes.data || []);
         } catch (err) {
             console.error("Ma'lumotlarni yuklashda xatolik:", err);
         } finally {
@@ -52,7 +68,7 @@ const Dashboard = () => {
     };
 
     const handleUpload = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         if (!file) return alert("Rasm tanlang");
 
         setUploading(true);
@@ -61,18 +77,14 @@ const Dashboard = () => {
         formData.append('title', newItem.title);
         formData.append('price', newItem.price || 0);
         formData.append('price_type', newItem.price_type);
-        formData.append('category_id', newItem.category_id);
+        formData.append('category_id', newItem.category_id || (filteredCategories[0]?.id || 1));
 
         try {
             await profileApi.uploadPortfolio(formData);
-            setNewItem({
-                title: '',
-                price: '',
-                price_type: 'soat',
-                category_id: filteredCategories[0]?.id || 1
-            });
+            setNewItem({ title: '', price: '', price_type: 'soat', category_id: filteredCategories[0]?.id || 1 });
             setFile(null);
             fetchData();
+            setActiveTab('ads');
         } catch (err) {
             alert("Yuklashda xatolik yuz berdi");
         } finally {
@@ -90,214 +102,314 @@ const Dashboard = () => {
         }
     };
 
+    const handleLogout = () => {
+        if (confirm("Haqiqatan ham chiqmoqchimisiz?")) {
+            localStorage.removeItem('token');
+            navigate('/login');
+        }
+    };
+
     if (loading) return (
-        <div className="min-h-screen flex items-center justify-center bg-background">
-            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        <div className="min-h-screen flex items-center justify-center bg-white">
+            <Spinner size="lg" />
         </div>
     );
 
     return (
-        <div className="min-h-screen bg-background pb-20">
-            <div className="max-w-6xl mx-auto px-4 py-8">
-
-                {/* Profile Header */}
-                <div className="mb-12 flex flex-col md:flex-row items-center gap-8 animate-in fade-in slide-in-from-top-4 duration-700">
-                    <div className="relative group">
-                        <div className="w-32 h-32 rounded-full border-4 border-primary overflow-hidden bg-white/5 flex items-center justify-center">
-                            {profile?.avatar_url ? (
-                                <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
-                            ) : (
-                                <Camera className="w-10 h-10 text-primary/20" />
+        <div className="min-h-screen bg-white pb-24">
+            {/* iOS Style Header */}
+            <div className="bg-[#f9fafb] pt-12 pb-8 px-6 rounded-b-[32px] border-b border-gray-100">
+                <div className="flex justify-between items-start mb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="relative">
+                            <div className="w-20 h-20 rounded-[28px] bg-white border-[3px] border-[#ddd6fe] overflow-hidden flex items-center justify-center shadow-sm">
+                                {profile?.avatar_url ? (
+                                    <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                                ) : (
+                                    <Camera size={32} className="text-gray-300" />
+                                )}
+                            </div>
+                            {profile?.is_verified && (
+                                <div className="absolute -top-1.5 -right-1.5 w-6 h-6 bg-[#10b981] rounded-full border-2 border-white flex items-center justify-center text-white text-[12px] font-bold">
+                                    ✓
+                                </div>
                             )}
                         </div>
-                        <div className="absolute -top-2 -right-2">
-                            {profile?.is_verified && <Badge variant="primary">Verified</Badge>}
+                        <div>
+                            <h1 className="text-[22px] font-black text-gray-900 leading-tight">
+                                {profile?.full_name || 'Foydalanuvchi'}
+                            </h1>
+                            <p className="text-gray-500 text-sm mb-2">{user?.phone}</p>
+                            <div className="flex gap-1.5">
+                                <div className="bg-white border border-gray-100 px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                                    <MapPin size={12} className="text-[#7c3aed]" />
+                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-tight">{profile?.region || 'Hudud'}</span>
+                                </div>
+                                <div className="bg-[#7c3aed] px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                                    <Briefcase size={12} className="text-white" />
+                                    <span className="text-[10px] font-black text-white uppercase tracking-tight">{user?.role}</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <div className="text-center md:text-left flex-1">
-                        <h1 className="text-4xl font-heading font-black mb-2 text-white">{profile?.full_name || 'Shaxsiy Kabinet'}</h1>
-                        <div className="flex flex-wrap justify-center md:justify-start gap-4 text-accent/60">
-                            <span className="flex items-center gap-1 text-sm uppercase tracking-widest"><MapPin size={14} className="text-primary" /> {profile?.region || 'Hudud ko\'rsatilmagan'}</span>
-                            <span className="flex items-center gap-1 text-sm uppercase tracking-widest text-primary"><Briefcase size={14} className="text-primary" /> {user?.role?.toUpperCase()}</span>
-                        </div>
-                    </div>
-                    <div className="flex gap-4">
-                        <Button
-                            variant="secondary"
-                            className="px-6 py-2 text-xs"
-                            onClick={() => navigate('/')}
-                        >
-                            Asosiy Sahifa
-                        </Button>
-                        <Button
-                            variant="secondary"
-                            className="px-6 py-2 text-xs border-primary/30 text-primary"
-                            onClick={() => navigate('/messages')}
-                        >
-                            Xabarlar 💬
-                        </Button>
-                        <Button
-                            variant="primary"
-                            className="px-6 py-2 text-xs"
+                    <div className="flex gap-2">
+                        <button
                             onClick={() => navigate('/profile/edit')}
+                            className="w-10 h-10 bg-white border border-gray-100 rounded-xl flex items-center justify-center text-gray-600 shadow-sm transition-transform active:scale-90"
                         >
-                            Profilni Tahrirlash
-                        </Button>
-                        <Button
-                            className="px-6 py-2 text-xs bg-danger/20 text-danger hover:bg-danger hover:text-white border-none"
-                            onClick={() => {
-                                localStorage.removeItem('token');
-                                navigate('/login');
-                            }}
+                            <Settings size={20} />
+                        </button>
+                        <button
+                            onClick={handleLogout}
+                            className="w-10 h-10 bg-white border border-red-100 rounded-xl flex items-center justify-center text-red-500 shadow-sm transition-transform active:scale-90"
                         >
-                            Chiqish
-                        </Button>
+                            <LogOut size={20} />
+                        </button>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+                <div className="flex gap-3">
+                    <Button
+                        variant="secondary"
+                        size="sm"
+                        className="flex-1 bg-white border-gray-100 h-12 rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-sm"
+                        onClick={() => navigate('/')}
+                    >
+                        Asosiy sahifa
+                    </Button>
+                    <Button
+                        variant="primary"
+                        size="sm"
+                        className="flex-1 h-12 rounded-2xl font-black text-[12px] uppercase tracking-widest shadow-lg shadow-[#7c3aed]/20"
+                        onClick={() => navigate('/messages')}
+                    >
+                        Xabarlar
+                    </Button>
+                </div>
+            </div>
 
-                    {user?.role === 'customer' ? (
-                        <div className="lg:col-span-3 py-20 bg-white/5 rounded-3xl border border-white/5 text-center px-6">
-                            <h2 className="text-2xl font-heading font-black mb-4">Siz hozircha "Mizoj" rolidasiz</h2>
-                            <p className="text-accent/50 mb-8 max-w-lg mx-auto uppercase tracking-widest text-xs leading-loose">
-                                E'lonlar yuklash va xizmat ko'rsatish imkoniyati faqat Usta va Texnika egalari uchun mavjud.
-                            </p>
-                            <Button
-                                variant="primary"
-                                onClick={() => {
-                                    localStorage.removeItem('token');
-                                    navigate('/login');
-                                }}
-                                className="px-8 py-4"
-                            >
-                                Rolni o'zgartirish (Usta bo'lib kirish)
-                            </Button>
+            {/* Content Area */}
+            <div className="px-6 pt-8 max-w-2xl mx-auto">
+                <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-[20px] font-black text-gray-900">Mening e'lonlarim</h2>
+                    <button
+                        onClick={() => setActiveTab(activeTab === 'ads' ? 'upload' : 'ads')}
+                        className={`flex items-center gap-2 pr-5 pl-4 py-2.5 rounded-2xl text-white font-black text-[13px] uppercase tracking-wider transition-all shadow-lg active:scale-95 ${activeTab === 'upload' ? 'bg-gray-400 rotate-0' : 'bg-[#10b981] shadow-[#10b981]/20'
+                            }`}
+                    >
+                        <div className={`transition-transform duration-300 ${activeTab === 'upload' ? 'rotate-45' : ''}`}>
+                            <Plus size={20} />
                         </div>
-                    ) : (
-                        <>
-                            {/* Portfolio Section */}
-                            <div className="lg:col-span-2 space-y-8">
-                                <div className="flex items-center justify-between">
-                                    <h2 className="text-2xl font-heading font-bold">
-                                        {user?.role === 'supplier' ? 'Mening Texnikalarim' : 'Mening Ishlarim'}
-                                    </h2>
-                                    <Badge variant="success">{portfolio.length} ta</Badge>
+                        {activeTab === 'ads' && <span>Yangi e'lon</span>}
+                    </button>
+                </div>
+
+                {activeTab === 'upload' ? (
+                    <div className="animate-in slide-in-from-bottom-4 duration-300">
+                        <form onSubmit={handleUpload} className="space-y-6">
+                            {/* Form Section: Basic Info */}
+                            <div className="bg-[#f9fafb] p-6 rounded-[28px] border border-gray-100 shadow-sm space-y-4">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 px-1">Asosiy ma'lumotlar</p>
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-black text-gray-900 uppercase ml-1 opacity-70">Sarlavha</label>
+                                    <div className="relative">
+                                        <Briefcase size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                        <Input
+                                            placeholder="Masalan: Kran ijarasi yoki Devor urish..."
+                                            value={newItem.title}
+                                            onChange={e => setNewItem({ ...newItem, title: e.target.value })}
+                                            className="pl-12 py-4 bg-white border-white rounded-2xl focus:ring-2 focus:ring-[#7c3aed]/10 transition-all font-medium"
+                                            required
+                                        />
+                                    </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {portfolio.map(item => (
-                                        <GlassCard key={item.id} className="relative group border-white/5">
-                                            <img src={item.image_url} alt={item.title} className="w-full h-48 object-cover grayscale brightness-75 group-hover:grayscale-0 transition-all duration-500" />
-                                            <div className="p-4">
-                                                <h3 className="text-lg mb-1 truncate">{item.title}</h3>
-                                                <p className="text-primary font-bold">{item.price ? item.price.toLocaleString() : '0'} <span className="text-[10px] text-accent/40 uppercase">so'm / {item.price_type}</span></p>
-                                            </div>
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="absolute top-2 right-2 p-2 bg-danger/20 text-danger rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-danger hover:text-white"
-                                            >
-                                                <Trash2 size={16} />
-                                            </button>
-                                        </GlassCard>
-                                    ))}
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-black text-gray-900 uppercase ml-1 opacity-70">Bo'lim (Kategoriya)</label>
+                                    <div className="relative">
+                                        <Layers size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                        <select
+                                            value={newItem.category_id}
+                                            onChange={e => setNewItem({ ...newItem, category_id: parseInt(e.target.value) })}
+                                            className="w-full pl-12 pr-4 py-4 bg-white border border-white rounded-2xl text-[15px] font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/10 transition-all"
+                                        >
+                                            {filteredCategories.map(cat => (
+                                                <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
+                                            ))}
+                                        </select>
+                                        <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                    </div>
+                                </div>
+                            </div>
 
-                                    {portfolio.length === 0 && (
-                                        <div className="col-span-2 py-20 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center text-accent/20">
-                                            <Plus size={48} className="mb-4" />
-                                            <p className="uppercase tracking-widest text-xs">Hali e'lonlar yuklanmagan</p>
+                            {/* Form Section: Price */}
+                            <div className="bg-[#f9fafb] p-6 rounded-[28px] border border-gray-100 shadow-sm space-y-4">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 px-1">Narx va Shartlar</p>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-black text-gray-900 uppercase ml-1 opacity-70">Narxi (So'm)</label>
+                                        <div className="relative">
+                                            <DollarSign size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" />
+                                            <Input
+                                                type="number"
+                                                placeholder="100,000"
+                                                value={newItem.price}
+                                                onChange={e => setNewItem({ ...newItem, price: e.target.value })}
+                                                className="pl-12 py-4 bg-white border-white rounded-2xl transition-all font-black text-[#7c3aed]"
+                                            />
                                         </div>
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[11px] font-black text-gray-900 uppercase ml-1 opacity-70">O'lchov birligi</label>
+                                        <div className="relative">
+                                            <select
+                                                value={newItem.price_type}
+                                                onChange={e => setNewItem({ ...newItem, price_type: e.target.value })}
+                                                className="w-full px-4 py-4 bg-white border border-white rounded-2xl text-[15px] font-medium appearance-none focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/10 transition-all"
+                                            >
+                                                <option value="soat">Soatiga</option>
+                                                <option value="kun">Kuniga</option>
+                                                <option value="smena">Smenasiga</option>
+                                                <option value="kv/m">Kv.m</option>
+                                                <option value="kelishilgan">Kelishilgan</option>
+                                            </select>
+                                            <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Form Section: Media */}
+                            <div className="bg-[#f9fafb] p-6 rounded-[28px] border border-gray-100 shadow-sm space-y-4">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2 px-1">Media (Rasm)</p>
+                                <div
+                                    onClick={() => fileInputRef.current.click()}
+                                    className="relative h-44 bg-white border-2 border-dashed border-gray-100 rounded-[24px] flex flex-col items-center justify-center cursor-pointer hover:border-[#7c3aed] hover:bg-[#7c3aed]/5 transition-all group"
+                                >
+                                    <input
+                                        type="file"
+                                        ref={fileInputRef}
+                                        onChange={e => setFile(e.target.files[0])}
+                                        className="hidden"
+                                        accept="image/*"
+                                    />
+                                    {file ? (
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="w-16 h-16 rounded-2xl bg-green-50 flex items-center justify-center text-green-500 mb-2">
+                                                <ImageIcon size={32} />
+                                            </div>
+                                            <p className="text-[14px] font-black text-[#7c3aed] truncate max-w-[240px]">{file.name}</p>
+                                            <p className="text-[10px] text-gray-400 uppercase font-black">O'zgartirish uchun bosing</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center text-gray-300 mb-2 group-hover:bg-[#7c3aed]/10 group-hover:text-[#7c3aed] transition-colors">
+                                                <Camera size={32} />
+                                            </div>
+                                            <p className="text-[14px] font-black text-gray-400 group-hover:text-[#7c3aed]">Rasm yuklang</p>
+                                            <p className="text-[10px] text-gray-300 uppercase font-black mt-1">Sifatli rasm ko'proq mijoz jalb qiladi</p>
+                                        </>
                                     )}
                                 </div>
                             </div>
 
-                            {/* Upload Sidebar */}
-                            <div>
-                                <GlassCard className="p-6 sticky top-24 border-primary/20">
-                                    <h2 className="text-xl font-heading font-bold mb-6 text-primary flex items-center gap-2">
-                                        <Plus size={20} /> {user?.role === 'supplier' ? 'Yangi texnika' : 'Yangi ish'} yuklash
-                                    </h2>
-                                    <form onSubmit={handleUpload} className="space-y-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] uppercase tracking-widest text-accent/40">Sarlavha</label>
-                                            <Input
-                                                placeholder={user?.role === 'supplier' ? "Masalan: Kran 25t..." : "Masalan: Uy suvoqlash..."}
-                                                value={newItem.title}
-                                                onChange={e => setNewItem({ ...newItem, title: e.target.value })}
-                                                required
-                                            />
+                            <Button
+                                className="w-full py-5 rounded-[24px] shadow-xl shadow-[#7c3aed]/20 font-black uppercase tracking-widest text-[14px] h-16"
+                                disabled={uploading || !newItem.title || !file}
+                            >
+                                {uploading ? 'Yuklanmoqda...' : 'Publikatsiya qilish'}
+                            </Button>
+                        </form>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {portfolio.map(item => (
+                            <div key={item.id} className="bg-white rounded-[28px] border border-gray-100 overflow-hidden shadow-premium flex flex-col group transition-all hover:shadow-xl hover:translate-y-[-4px]">
+                                <div className="relative aspect-[16/11] overflow-hidden bg-gray-50">
+                                    <img src={item.image_url1} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                                    <div className="absolute top-3 right-3 flex gap-2">
+                                        <button
+                                            onClick={() => handleDelete(item.id)}
+                                            className="w-10 h-10 bg-white/70 backdrop-blur-md rounded-xl flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg active:scale-90"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
+                                    <div className="absolute bottom-3 left-3">
+                                        <div className="bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl shadow-sm border border-white/20">
+                                            <p className="text-[#7c3aed] font-black text-[14px]">
+                                                {item.price ? `${item.price.toLocaleString()} so'm` : 'Kelishilgan'}
+                                                <span className="text-gray-400 text-[9px] uppercase font-black ml-1">/ {item.price_type}</span>
+                                            </p>
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] uppercase tracking-widest text-accent/40 font-bold">Bo'lim (Kategoriya)</label>
-                                            <div className="relative">
-                                                <select
-                                                    className="input-field w-full appearance-none bg-background border-white/10 pr-10"
-                                                    value={newItem.category_id}
-                                                    onChange={e => setNewItem({ ...newItem, category_id: parseInt(e.target.value) })}
-                                                >
-                                                    {filteredCategories.map(cat => (
-                                                        <option key={cat.id} value={cat.id}>
-                                                            {cat.icon} {cat.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-accent/40 pointer-events-none" size={14} />
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] uppercase tracking-widest text-accent/40">Narxi</label>
-                                                <Input
-                                                    placeholder="100,000"
-                                                    type="number"
-                                                    value={newItem.price}
-                                                    onChange={e => setNewItem({ ...newItem, price: e.target.value })}
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] uppercase tracking-widest text-accent/40">Turi</label>
-                                                <select
-                                                    className="input-field w-full appearance-none bg-background border-white/10"
-                                                    value={newItem.price_type}
-                                                    onChange={e => setNewItem({ ...newItem, price_type: e.target.value })}
-                                                >
-                                                    <option value="soat">Soatiga</option>
-                                                    <option value="kun">Kuniga</option>
-                                                    <option value="smena">Smenasiga</option>
-                                                    <option value="kv/m">Kv.m</option>
-                                                    <option value="kelishilgan">Kelishilgan</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] uppercase tracking-widest text-accent/40">Rasm yuklash</label>
-                                            <div className="relative h-32 border-2 border-dashed border-white/5 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-primary/50 transition-colors bg-white/5">
-                                                <input
-                                                    type="file"
-                                                    className="absolute inset-0 opacity-0 cursor-pointer"
-                                                    onChange={e => setFile(e.target.files[0])}
-                                                    accept="image/*"
-                                                />
-                                                {file ? (
-                                                    <p className="text-xs text-primary truncate max-w-[80%]">{file.name}</p>
-                                                ) : (
-                                                    <>
-                                                        <Camera className="text-accent/20 mb-2" />
-                                                        <p className="text-[10px] uppercase tracking-tighter text-accent/40">Rasm tanlash</p>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
-                                        <Button className="w-full mt-4 py-4" disabled={uploading}>
-                                            {uploading ? 'Yuklanmoqda...' : 'Publikatsiya qilish'}
-                                        </Button>
-                                    </form>
-                                </GlassCard>
+                                    </div>
+                                </div>
+                                <div className="p-5">
+                                    <h3 className="text-[17px] font-black text-gray-900 mb-1 truncate leading-tight">{item.title}</h3>
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <div className="w-1 h-1 bg-gray-300 rounded-full" />
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Aktiv e'lon</span>
+                                    </div>
+                                </div>
                             </div>
-                        </>
-                    )}
-                </div>
+                        ))}
+                        {portfolio.length === 0 && (
+                            <div className="col-span-full py-24 bg-[#f9fafb] rounded-[32px] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center text-gray-300">
+                                <div className="w-20 h-20 rounded-3xl bg-white flex items-center justify-center text-gray-200 mb-4 shadow-sm border border-gray-100">
+                                    <Plus size={40} />
+                                </div>
+                                <p className="font-black text-[15px] uppercase tracking-widest text-gray-400">E'lonlar mavjud emas</p>
+                                <button
+                                    onClick={() => setActiveTab('upload')}
+                                    className="mt-4 text-[#7c3aed] font-black text-[12px] uppercase tracking-widest underline decoration-2 underline-offset-4"
+                                >
+                                    Birinchisini qo'shish
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Mobile Bottom Nav */}
+            <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 flex justify-around items-center py-3 px-2 z-50">
+                <button
+                    onClick={() => navigate('/')}
+                    className="flex flex-col items-center gap-1 min-w-[64px] text-gray-400 transition-all active:scale-90"
+                >
+                    <HomeIcon size={24} className="opacity-70" />
+                    <span className="text-[9px] font-black uppercase tracking-tight">Asosiy</span>
+                </button>
+                <button
+                    className="flex flex-col items-center gap-1 min-w-[64px] text-[#7c3aed] transition-all"
+                >
+                    <div className="relative">
+                        <ClipboardList size={24} />
+                        <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-[#7c3aed] rounded-full shadow-lg shadow-[#7c3aed]/40" />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-tight">Kabinet</span>
+                </button>
+                <button
+                    onClick={() => navigate('/')}
+                    className="flex flex-col items-center gap-1 min-w-[64px] text-gray-400 transition-all active:scale-90"
+                >
+                    <Search size={24} className="opacity-70" />
+                    <span className="text-[9px] font-black uppercase tracking-tight">Qidiruv</span>
+                </button>
+                <button
+                    onClick={() => navigate('/messages')}
+                    className="flex flex-col items-center gap-1 min-w-[64px] text-gray-400 transition-all active:scale-90"
+                >
+                    <MessageSquare size={24} className="opacity-70" />
+                    <span className="text-[9px] font-black uppercase tracking-tight">Xabarlar</span>
+                </button>
+                <button
+                    onClick={() => navigate(localStorage.getItem('token') ? '/dashboard' : '/login')}
+                    className="flex flex-col items-center gap-1 min-w-[64px] text-gray-400 transition-all active:scale-90"
+                >
+                    <User size={24} className="opacity-70" />
+                    <span className="text-[9px] font-black uppercase tracking-tight">Profil</span>
+                </button>
             </div>
         </div>
     );

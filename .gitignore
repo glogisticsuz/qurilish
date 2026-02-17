@@ -12,7 +12,7 @@ build/
 
 # Dependencies
 node_modules/
-backend/.venv/
+Beckend/.venv/
 venv/
 env/
 ENV/
@@ -25,10 +25,8 @@ Thumbs.db
 *.log
 *.sqlite
 *.db
-!Beckend/megastroy.db # Keeping the DB if they want, but usually it's ignored. 
-# Actually, better ignore all .db and let them decide.
-Beckend/megastroy.db
 megastroy.db
+Beckend/megastroy.db
 
 # Python
 __pycache__/

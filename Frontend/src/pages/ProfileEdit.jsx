@@ -1,16 +1,24 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Input, GlassCard } from '../components/UIComponents';
-import { profileApi } from '../api/api';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, MapPin, AlignLeft, ArrowLeft } from 'lucide-react';
+import { profileApi } from '../api/api';
+import { Button, Input, Spinner } from '../components/UIComponents';
+import {
+    User,
+    MapPin,
+    AlignLeft,
+    ChevronLeft,
+    Camera,
+    Check,
+    Briefcase
+} from 'lucide-react';
 
 const ProfileEdit = () => {
-    const [profile, setProfile] = useState({ bio: '', region: '', full_name: '', avatar_url: '' });
+    const [profile, setProfile] = useState({ bio: '', region: '', full_name: '', avatar_url: '', category_id: 1 });
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploadingAvatar, setUploadingAvatar] = useState(false);
     const navigate = useNavigate();
-    const fileInputRef = React.useRef();
+    const fileInputRef = useRef();
 
     useEffect(() => {
         fetchProfile();
@@ -43,7 +51,7 @@ const ProfileEdit = () => {
 
         try {
             const res = await profileApi.uploadAvatar(formData);
-            setProfile({ ...profile, avatar_url: res.data.avatar_url });
+            setProfile(prev => ({ ...prev, avatar_url: res.data.avatar_url }));
         } catch (err) {
             alert("Rasmni yuklashda xatolik");
         } finally {
@@ -52,7 +60,7 @@ const ProfileEdit = () => {
     };
 
     const handleSave = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         setSaving(true);
         try {
             await profileApi.updateMe(profile);
@@ -64,110 +72,116 @@ const ProfileEdit = () => {
         }
     };
 
-    if (loading) return null;
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-white">
+            <Spinner size="lg" />
+        </div>
+    );
 
     return (
-        <div className="min-h-screen bg-background p-6">
-            <div className="max-w-2xl mx-auto py-12">
+        <div className="min-h-screen bg-white pb-24">
+            {/* iOS Style Header */}
+            <div className="bg-[#f9fafb] pt-12 pb-6 px-6 rounded-b-[32px] border-b border-gray-100 flex items-center justify-between sticky top-0 z-50">
                 <button
                     onClick={() => navigate('/dashboard')}
-                    className="flex items-center gap-2 text-accent/40 hover:text-primary mb-8 transition-colors uppercase tracking-widest text-xs"
+                    className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-600 shadow-sm border border-gray-100"
                 >
-                    <ArrowLeft size={16} /> Ortga qaytish
+                    <ChevronLeft size={24} />
                 </button>
+                <h1 className="text-[17px] font-black text-gray-900">Profilni tahrirlash</h1>
+                <button
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="text-[#7c3aed] font-black text-[15px] disabled:opacity-50"
+                >
+                    {saving ? '...' : 'Saqlash'}
+                </button>
+            </div>
 
-                <h1 className="text-4xl font-heading font-black mb-8">Profilni Tahrirlash</h1>
-
-                <GlassCard className="p-8 border-primary/10">
-                    <form onSubmit={handleSave} className="space-y-8">
-                        <div className="flex flex-col items-center mb-8">
-                            <div
-                                className="relative group cursor-pointer"
-                                onClick={() => fileInputRef.current.click()}
-                            >
-                                <div className="w-32 h-32 rounded-full border-4 border-primary overflow-hidden bg-white/5 flex items-center justify-center">
-                                    {profile.avatar_url ? (
-                                        <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-                                    ) : (
-                                        <User size={48} className="text-primary/20" />
-                                    )}
-                                    {uploadingAvatar && (
-                                        <div className="absolute inset-0 bg-background/60 flex items-center justify-center">
-                                            <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                                        </div>
-                                    )}
+            <div className="px-6 pt-10 max-w-2xl mx-auto">
+                {/* Avatar Section */}
+                <div className="flex flex-col items-center mb-10">
+                    <div
+                        onClick={() => fileInputRef.current.click()}
+                        className="relative cursor-pointer group"
+                    >
+                        <div className="w-28 h-28 rounded-[36px] bg-[#f3f4f6] border-[4px] border-white overflow-hidden flex items-center justify-center shadow-xl ring-4 ring-[#7c3aed]/5 transition-transform group-hover:scale-105">
+                            {profile.avatar_url ? (
+                                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                <User size={40} className="text-gray-300" />
+                            )}
+                            {uploadingAvatar && (
+                                <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                 </div>
-                                <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center rounded-full">
-                                    <span className="text-[10px] uppercase font-bold text-white">O'zgartirish</span>
-                                </div>
-                                <input
-                                    type="file"
-                                    ref={fileInputRef}
-                                    className="hidden"
-                                    accept="image/*"
-                                    onChange={handleAvatarChange}
-                                />
-                            </div>
-                            <p className="mt-4 text-[10px] uppercase tracking-widest text-accent/40 font-bold">Profil rasmi (Gallery/File)</p>
+                            )}
                         </div>
+                        <div className="absolute -bottom-1 -right-1 w-8 h-8 bg-[#7c3aed] rounded-xl flex items-center justify-center text-white shadow-lg border-2 border-white">
+                            <Camera size={16} />
+                        </div>
+                        <input
+                            type="file"
+                            ref={fileInputRef}
+                            className="hidden"
+                            onChange={handleAvatarChange}
+                            accept="image/*"
+                        />
+                    </div>
+                    <p className="mt-4 text-[12px] font-black text-gray-400 uppercase tracking-widest">Suratni o'zgartirish</p>
+                </div>
 
-                        <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-accent/40 font-bold">
-                                👤 To'liq ism (Nickname)
-                            </label>
+                <form onSubmit={handleSave} className="space-y-6">
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-black text-gray-400 uppercase ml-1">To'liq ism</label>
+                        <div className="relative">
+                            <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                             <Input
-                                placeholder="Masalan: Ali Valiyev"
+                                placeholder="Ismingizni kiriting"
                                 value={profile.full_name}
                                 onChange={e => setProfile({ ...profile, full_name: e.target.value })}
+                                className="pl-12 py-4 bg-[#f9fafb] border-gray-100 rounded-2xl focus:bg-white"
+                                required
                             />
                         </div>
+                    </div>
 
-                        <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-accent/40 font-bold">
-                                ⭐ Bo'lim (Kategoriya)
-                            </label>
-                            <select
-                                className="input-field w-full appearance-none bg-background border-white/10"
-                                value={profile.category_id}
-                                onChange={e => setProfile({ ...profile, category_id: parseInt(e.target.value) })}
-                            >
-                                <option value={1}>👷 Ustalar</option>
-                                <option value={2}>🚜 Texnika Ijarasi</option>
-                                <option value={3}>🧱 Qurilish Mollari</option>
-                                <option value={4}>📋 Prorablar</option>
-                            </select>
-                        </div>
-
-                        <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-accent/40 font-bold">
-                                <MapPin size={14} className="text-primary" /> Hudud / Manzil
-                            </label>
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-black text-gray-400 uppercase ml-1">Hudud</label>
+                        <div className="relative">
+                            <MapPin size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                             <Input
-                                placeholder="Masalan: Toshkent sh., Chilonzor"
+                                placeholder="Hududni kiriting (Masalan: Toshkent)"
                                 value={profile.region}
                                 onChange={e => setProfile({ ...profile, region: e.target.value })}
+                                className="pl-12 py-4 bg-[#f9fafb] border-gray-100 rounded-2xl focus:bg-white"
                             />
                         </div>
+                    </div>
 
-                        <div className="space-y-3">
-                            <label className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-accent/40 font-bold">
-                                <AlignLeft size={14} className="text-primary" /> Mutaxassislik / Tavsif
-                            </label>
+                    <div className="space-y-1.5">
+                        <label className="text-[11px] font-black text-gray-400 uppercase ml-1">Mutaxassislik</label>
+                        <div className="relative">
+                            <Briefcase size={18} className="absolute left-4 top-4 text-gray-400" />
                             <textarea
-                                className="input-field w-full min-h-[150px] resize-none"
-                                placeholder="O'zingiz va xizmatlaringiz haqida batafsil ma'lumot bering..."
+                                placeholder="Mutaxassisligingiz haqida qisqacha..."
                                 value={profile.bio}
                                 onChange={e => setProfile({ ...profile, bio: e.target.value })}
-                            ></textarea>
+                                className="w-full pl-12 pr-4 py-4 bg-[#f9fafb] border border-gray-100 rounded-2xl min-h-[140px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/10 focus:border-[#7c3aed] focus:bg-white transition-all"
+                            />
                         </div>
+                    </div>
 
-                        <div className="pt-4">
-                            <Button type="submit" className="w-full py-4 text-sm" disabled={saving}>
-                                {saving ? 'Saqlanmoqda...' : 'O\'zgarishlarni saqlash'}
-                            </Button>
-                        </div>
-                    </form>
-                </GlassCard>
+                    <div className="pt-6">
+                        <Button
+                            type="submit"
+                            className="w-full py-4 rounded-2xl shadow-lg shadow-[#7c3aed]/20"
+                            disabled={saving}
+                        >
+                            {saving ? 'Saqlanmoqda...' : 'O\'zgarishlarni saqlash'}
+                        </Button>
+                    </div>
+                </form>
             </div>
         </div>
     );

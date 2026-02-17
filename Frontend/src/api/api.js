@@ -52,6 +52,10 @@ export const chatApi = {
     getChats: () => api.get('/messages/chats'),
     getHistory: (userId) => api.get(`/messages/${userId}`),
     sendMessage: (data) => api.post('/messages/send', data),
+    sendImage: (formData) => api.post('/messages/send-image', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
+    markAsRead: (userId) => api.post(`/messages/${userId}/read`),
 };
 
 export const reviewApi = {

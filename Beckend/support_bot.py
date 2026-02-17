@@ -1,127 +1,170 @@
 import logging
-from aiogram import Bot, Dispatcher, types
-from aiogram.utils import executor
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
-from aiogram.dispatcher.filters.state import State, StatesGroup
-from aiogram.dispatcher import FSMContext
-from aiogram.contrib.fsm_storage.memory import MemoryStorage
+import traceback
+import os
+import telebot
+import html
+from telebot import types
+from dotenv import load_dotenv
 
-# Bot tokenini shu yerga qo'ying
-API_TOKEN = '8415608737:AAFLd3RagklCMPYPkDzNzDYMU4Ey_1Phgo0'
-# Kanal manzili
-CHANNEL_ID = '@Megastroy_channel'
+# Environment variables
+load_dotenv()
+API_TOKEN = os.getenv('SUPPORT_BOT_TOKEN')
+raw_channel_id = os.getenv('SUPPORT_CHANNEL_ID', '@Megastroy_channel')
+
+# Try to convert to int if it's a numeric ID (starts with -100)
+try:
+    if raw_channel_id.startswith('-') or raw_channel_id.isdigit():
+        CHANNEL_ID = int(raw_channel_id)
+    else:
+        CHANNEL_ID = raw_channel_id
+except:
+    CHANNEL_ID = raw_channel_id
 
 # Logging sozlash
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    level=logging.INFO
+)
 
-# State-lar yaratish
-class SupportStates(StatesGroup):
-    waiting_for_subject = State()
-    waiting_for_details = State()
-    waiting_for_phone = State()
+bot = telebot.TeleBot(API_TOKEN)
 
-# Bot va Dispatcher obyektlarini yaratish (MemoryStorage bilan)
-bot = Bot(token=API_TOKEN)
-storage = MemoryStorage()
-dp = Dispatcher(bot, storage=storage)
+# Foydalanuvchi holatlarini saqlash uchun lug'at
+user_data = {}
 
-@dp.message_handler(commands=['start', 'help'], state="*")
-async def send_welcome(message: types.Message, state: FSMContext):
-    """
-    Start buyrug'i uchun javob
-    """
-    await state.finish()
-    keyboard = InlineKeyboardMarkup(row_width=1)
+@bot.message_handler(commands=['start', 'help'])
+def send_welcome(message):
+    chat_id = message.chat.id
+    # Har safardan start bosilganda holatni tozalash
+    user_data.pop(chat_id, None)
+    
+    keyboard = types.InlineKeyboardMarkup(row_width=1)
     keyboard.add(
-        InlineKeyboardButton("👨‍💻 Adminga murojaat", callback_data='contact_admin'),
-        InlineKeyboardButton("💰 Reklama narxlari", callback_data='ads_prices'),
-        InlineKeyboardButton("❓ Ko'p beriladigan savollar", callback_data='faq'),
-        InlineKeyboardButton("🌐 Saytga o'tish", url='https://megastroy.uz')
+        types.InlineKeyboardButton("👨‍💻 Adminga murojaat", callback_data='contact_admin'),
+        types.InlineKeyboardButton("💰 Reklama narxlari", callback_data='ads_prices'),
+        types.InlineKeyboardButton("❓ Ko'p beriladigan savollar", callback_data='faq'),
+        types.InlineKeyboardButton("🌐 Saytga o'tish", url='https://megastroy.uz')
     )
     
-    await message.reply(
-        "Assalomu alaykum! **MegaStroy** qo'llab-quvvatlash botiga xush kelibsiz.\n\n"
-        "Sizga qanday yordam bera olamiz?\n"
-        "Pastdagi tugmalardan birini tanlang:",
-        reply_markup=keyboard,
-        parse_mode='Markdown'
+    try:
+        bot.reply_to(
+            message,
+            "Assalomu alaykum! <b>MegaStroy</b> qo'llab-quvvatlash botiga xush kelibsiz.\n\n"
+            "Sizga qanday yordam bera olamiz?\n"
+            "Pastdagi tugmalardan birini tanlang:",
+            reply_markup=keyboard,
+            parse_mode='HTML'
+        )
+    except Exception as e:
+        logging.error(f"Error in start command: {e}")
+
+@bot.callback_query_handler(func=lambda call: call.data == 'contact_admin')
+def process_contact_admin(call):
+    chat_id = call.message.chat.id
+    bot.answer_callback_query(call.id)
+    msg = bot.send_message(
+        chat_id,
+        "📝 Iltimos, murojaatingiz <b>mavzusini</b> (sarlavhasini) kiriting:",
+        parse_mode='HTML'
     )
+    bot.register_next_step_handler(msg, get_subject)
 
-@dp.callback_query_handler(lambda c: c.data == 'contact_admin', state="*")
-async def process_contact_admin(callback_query: types.CallbackQuery):
-    await bot.answer_callback_query(callback_query.id)
-    await bot.send_message(
-        callback_query.from_user.id,
-        "📝 Iltimos, murojaatingiz **mavzusini** (sarlavhasini) kiriting:"
-    )
-    await SupportStates.waiting_for_subject.set()
+def get_subject(message):
+    chat_id = message.chat.id
+    if message.text == '/start':
+        send_welcome(message)
+        return
 
-@dp.message_handler(state=SupportStates.waiting_for_subject)
-async def get_subject(message: types.Message, state: FSMContext):
-    await state.update_data(subject=message.text)
-    await message.answer("ℹ️ Endi murojaat haqida **batafsil** ma'lumot qoldiring:")
-    await SupportStates.waiting_for_details.set()
+    user_data[chat_id] = {'subject': message.text}
+    msg = bot.send_message(chat_id, "ℹ️ Endi murojaat haqida <b>batafsil</b> ma'lumot qoldiring:", parse_mode='HTML')
+    bot.register_next_step_handler(msg, get_details)
 
-@dp.message_handler(state=SupportStates.waiting_for_details)
-async def get_details(message: types.Message, state: FSMContext):
-    await state.update_data(details=message.text)
+def get_details(message):
+    chat_id = message.chat.id
+    if message.text == '/start':
+        send_welcome(message)
+        return
+
+    if chat_id not in user_data:
+        bot.send_message(chat_id, "Xatolik yuz berdi. Iltimos, /start buyrug'idan boshlang.")
+        return
+
+    user_data[chat_id]['details'] = message.text
     
     # Telefon raqamini so'rash
-    keyboard = ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
-    keyboard.add(KeyboardButton("📞 Telefon raqamni yuborish", request_contact=True))
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
+    keyboard.add(types.KeyboardButton("📞 Telefon raqamni yuborish", request_contact=True))
     
-    await message.answer(
-        "📞 Oxirgi qadam: Siz bilan bog'lanishimiz uchun **telefon raqamingizni** yuboring (pastdagi tugmani bosing yoki o'zingiz yozing):",
-        reply_markup=keyboard
+    msg = bot.send_message(
+        chat_id,
+        "📞 Oxirgi qadam: Siz bilan bog'lanishimiz uchun <b>telefon raqamingizni</b> yuboring (pastdagi tugmani bosing yoki o'zingiz yozing):",
+        reply_markup=keyboard,
+        parse_mode='HTML'
     )
-    await SupportStates.waiting_for_phone.set()
+    bot.register_next_step_handler(msg, get_phone_and_finalize)
 
-@dp.message_handler(content_types=['contact', 'text'], state=SupportStates.waiting_for_phone)
-async def get_phone_and_finalize(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    subject = data.get('subject')
-    details = data.get('details')
+def get_phone_and_finalize(message):
+    chat_id = message.chat.id
+    if message.text == '/start':
+        send_welcome(message)
+        return
+
+    if chat_id not in user_data:
+        bot.send_message(chat_id, "Xatolik yuz berdi. Iltimos, /start buyrug'idan boshlang.")
+        return
+
+    # Escaping all user inputs for HTML security
+    subject = html.escape(user_data[chat_id]['subject'])
+    details = html.escape(user_data[chat_id]['details'])
     
     if message.contact:
-        phone = message.contact.phone_number
+        phone = html.escape(message.contact.phone_number)
     else:
-        phone = message.text
+        phone = html.escape(message.text)
 
-    username = f"@{message.from_user.username}" if message.from_user.username else "Noma'lum"
-    full_name = message.from_user.full_name
+    username = f"@{html.escape(message.from_user.username)}" if message.from_user.username else "Noma'lum"
+    full_name = html.escape(message.from_user.full_name)
     
     # Kanalga jo'natish uchun chiroylik maket
     report_text = (
-        "🚀 **YANGI MUROJAAT!**\n"
+        "🚀 <b>YANGI MUROJAAT!</b>\n"
         "━━━━━━━━━━━━━━━━━━\n"
-        f"📂 **Mavzu:** {subject}\n"
-        f"📝 **Batafsil:** {details}\n\n"
-        "👤 **Foydalanuvchi ma'lumotlari:**\n"
-        f"  └ **Ism:** {full_name}\n"
-        f"  └ **Username:** {username}\n"
-        f"  └ **Tel:** `{phone}`\n"
+        f"📂 <b>Mavzu:</b> {subject}\n"
+        f"📝 <b>Batafsil:</b> {details}\n\n"
+        "👤 <b>Foydalanuvchi ma'lumotlari:</b>\n"
+        f"  └ <b>Ism:</b> {full_name}\n"
+        f"  └ <b>Username:</b> {username}\n"
+        f"  └ <b>Tel:</b> <code>{phone}</code>\n"
         "━━━━━━━━━━━━━━━━━━"
     )
     
     try:
-        await bot.send_message(CHANNEL_ID, report_text, parse_mode='Markdown')
-        await message.answer(
+        logging.info(f"Attempting to send report to {CHANNEL_ID}")
+        bot.send_message(CHANNEL_ID, report_text, parse_mode='HTML')
+        logging.info("Report sent successfully to channel")
+        bot.send_message(
+            chat_id,
             "✅ Rahmat! Murojaatingiz adminga muvaffaqiyatli yetkazildi.\n"
             "Tez orada siz bilan bog'lanishadi.",
-            reply_markup=ReplyKeyboardRemove()
+            reply_markup=types.ReplyKeyboardRemove(),
+            parse_mode='HTML'
         )
     except Exception as e:
-        logging.error(f"Error sending to channel: {e}")
-        await message.answer(
-            "❌ Xatolik yuz berdi. Iltimos, birozdan so'ng qayta urinib ko'ring yoki admin bilan to'g'ridan-to'g'ri bog'laning.",
-            reply_markup=ReplyKeyboardRemove()
+        error_msg = html.escape(str(e))
+        logging.error(f"Error sending to channel: {traceback.format_exc()}")
+        bot.send_message(
+            chat_id,
+            f"❌ <b>Xatolik yuz berdi:</b> Bot kanalga xabar yubora olmadi.\n\n"
+            f"<b>Sababi:</b> {error_msg}\n\n"
+            f"Iltimos, bot @Megastroy_channel kanalida <b>Admin</b> ekanligini va xabar yuborish huquqi borligini tekshiring.",
+            parse_mode='HTML',
+            reply_markup=types.ReplyKeyboardRemove()
         )
-    
-    await state.finish()
+    finally:
+        user_data.pop(chat_id, None)
 
-@dp.callback_query_handler(lambda c: c.data == 'ads_prices', state="*")
-async def process_ads_prices(callback_query: types.CallbackQuery):
-    await bot.answer_callback_query(callback_query.id)
+@bot.callback_query_handler(func=lambda call: call.data == 'ads_prices')
+def process_ads_prices(call):
+    bot.answer_callback_query(call.id)
     prices_text = (
         "📊 **Reklama xizmatlari va narxlari:**\n\n"
         "🏷 **Splash Screen (Ilova ochilganda):**\n"
@@ -134,22 +177,23 @@ async def process_ads_prices(callback_query: types.CallbackQuery):
         "   └ 30,000 so'm (bir martalik)\n\n"
         "💡 *Barcha narxlar kelishiladi.* Murojaat uchun tepada 'Adminga murojaat' tugmasini bosing."
     )
-    await bot.send_message(callback_query.from_user.id, prices_text, parse_mode='Markdown')
+    bot.send_message(call.from_user.id, prices_text, parse_mode='Markdown')
 
-@dp.callback_query_handler(lambda c: c.data == 'faq', state="*")
-async def process_faq(callback_query: types.CallbackQuery):
-    await bot.answer_callback_query(callback_query.id)
+@bot.callback_query_handler(func=lambda call: call.data == 'faq')
+def process_faq(call):
+    bot.answer_callback_query(call.id)
     faq_text = (
         "❓ **Ko'p beriladigan savollar:**\n\n"
         "**Q: Qanday qilib usta sifatida ro'yxatdan o'taman?**\n"
-        "A: Ilovani yuklab oling, profil bo'limida 'Mutaxassis' rolini tanlang.\n\n"
+        "**A:** Ilovani yuklab oling, profil bo'limida 'Mutaxassis' rolini tanlang.\n\n"
         "**Q: E'lon berish bepulmi?**\n"
-        "A: Oddiy e'lonlar bepul, pullik xizmatlar orqali ko'proq mijoz topishingiz mumkin.\n\n"
+        "**A:** Oddiy e'lonlar bepul, pullik xizmatlar orqali ko'proq mijoz topishingiz mumkin.\n\n"
         "**Q: To'lovlarni qanday amalga oshiraman?**\n"
-        "A: Hozirda Payme va Click tizimlari orqali (tez orada)."
+        "**A:** Hozirda Payme va Click tizimlari orqali (tez orada)."
     )
-    await bot.send_message(callback_query.from_user.id, faq_text, parse_mode='Markdown')
+    bot.send_message(call.from_user.id, faq_text, parse_mode='Markdown')
 
 if __name__ == '__main__':
-    print("Bot muvaffaqiyatli ishga tushdi...")
-    executor.start_polling(dp, skip_updates=True)
+    logging.info("Bot ishga tushirildi (Telebot)...")
+    bot.remove_webhook()
+    bot.infinity_polling()

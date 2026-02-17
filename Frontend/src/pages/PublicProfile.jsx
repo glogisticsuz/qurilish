@@ -1,8 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { profileApi, reviewApi, authApi } from '../api/api';
-import { GlassCard, Button, Badge, Input } from '../components/UIComponents';
-import { ArrowLeft, MapPin, Briefcase, MessageSquare, Star, Phone, AtSign } from 'lucide-react';
+import { Button, Input, Spinner, ProductCard } from '../components/UIComponents';
+import {
+    ChevronLeft,
+    MapPin,
+    Briefcase,
+    MessageSquare,
+    Star,
+    Phone,
+    AtSign,
+    ShieldCheck,
+    Share2,
+    Calendar
+} from 'lucide-react';
 
 const PublicProfile = () => {
     const { userId } = useParams();
@@ -14,13 +25,6 @@ const PublicProfile = () => {
     const [newReview, setNewReview] = useState({ stars: 5, text: '' });
     const [submitting, setSubmitting] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
-
-    const categories = [
-        { id: 1, name: 'Ustalar', icon: '👷' },
-        { id: 2, name: 'Texnika Ijarasi', icon: '🚜' },
-        { id: 3, name: 'Qurilish Mollari', icon: '🧱' },
-        { id: 4, name: 'Prorablar', icon: '📋' },
-    ];
 
     useEffect(() => {
         fetchPublicData();
@@ -34,10 +38,9 @@ const PublicProfile = () => {
                 reviewApi.getReviews(userId)
             ]);
             setProfile(profRes.data);
-            setItems(itemsRes.data);
-            setReviews(revRes.data);
+            setItems(itemsRes.data || []);
+            setReviews(revRes.data || []);
 
-            // Check auth
             const token = localStorage.getItem('token');
             if (token) {
                 const userRes = await authApi.getMe();
@@ -51,7 +54,7 @@ const PublicProfile = () => {
     };
 
     const handleAddReview = async (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         if (!currentUser) {
             navigate('/login');
             return;
@@ -68,174 +71,183 @@ const PublicProfile = () => {
         }
     };
 
-    if (loading) return <div className="min-h-screen flex items-center justify-center bg-background"><div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>;
+    if (loading) return (
+        <div className="min-h-screen flex items-center justify-center bg-white">
+            <Spinner size="lg" />
+        </div>
+    );
 
     const rating = profile?.user?.rating || 0;
 
     return (
-        <div className="min-h-screen bg-background pb-20">
-            <div className="max-w-6xl mx-auto px-4 py-8">
-                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-accent/40 hover:text-primary mb-12 transition-colors uppercase tracking-widest text-xs">
-                    <ArrowLeft size={16} /> Ortga qaytish
+        <div className="min-h-screen bg-white pb-24">
+            {/* iOS Style Header */}
+            <div className="bg-[#f9fafb] pt-12 pb-6 px-6 rounded-b-[32px] border-b border-gray-100 flex items-center justify-between sticky top-0 z-50">
+                <button
+                    onClick={() => navigate(-1)}
+                    className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-600 shadow-sm border border-gray-100"
+                >
+                    <ChevronLeft size={24} />
                 </button>
+                <h1 className="text-[17px] font-black text-gray-900">Profil</h1>
+                <button
+                    className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-gray-600 shadow-sm border border-gray-100"
+                >
+                    <Share2 size={20} />
+                </button>
+            </div>
 
-                {/* Profile Header */}
-                <div className="flex flex-col md:flex-row items-center gap-8 mb-16 animate-in fade-in slide-in-from-top-4 duration-700">
-                    <div className="w-40 h-40 rounded-full border-4 border-primary overflow-hidden bg-white/5 flex items-center justify-center relative">
-                        {profile?.avatar_url ? (
-                            <img src={profile.avatar_url} alt={profile.full_name} className="w-full h-full object-cover" />
-                        ) : (
-                            <span className="text-4xl">👤</span>
-                        )}
-                        {rating > 0 && (
-                            <div className="absolute -bottom-2 bg-primary text-background px-3 py-1 rounded-full font-black text-sm border-2 border-background">
-                                ⭐ {rating.toFixed(1)}
+            <div className="px-6 pt-10 max-w-4xl mx-auto">
+                {/* Profile Section */}
+                <div className="flex flex-col items-center mb-10">
+                    <div className="relative mb-4">
+                        <div className="w-32 h-32 rounded-[40px] bg-white border-[4px] border-white overflow-hidden flex items-center justify-center shadow-2xl ring-4 ring-[#7c3aed]/5">
+                            {profile?.avatar_url ? (
+                                <img src={profile.avatar_url} alt="Profile" className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="text-4xl">👤</div>
+                            )}
+                        </div>
+                        {profile?.is_verified && (
+                            <div className="absolute -top-1 -right-1 w-8 h-8 bg-[#10b981] rounded-full border-[3px] border-white flex items-center justify-center text-white text-[14px] font-bold shadow-lg">
+                                ✓
                             </div>
                         )}
                     </div>
-                    <div className="text-center md:text-left flex-1">
-                        <div className="flex items-center justify-center md:justify-start gap-4 mb-2">
-                            <h1 className="text-4xl font-heading font-black text-white">{profile?.full_name || 'Foydalanuvchi'}</h1>
-                            {profile?.is_verified && <Badge variant="primary">Verified</Badge>}
+
+                    <h1 className="text-[28px] font-black text-gray-900 leading-tight mb-2 text-center">
+                        {profile?.full_name || 'Foydalanuvchi'}
+                    </h1>
+
+                    <div className="flex items-center gap-2 mb-6">
+                        <div className="flex text-yellow-400">
+                            {[...Array(5)].map((_, i) => (
+                                <Star
+                                    key={i}
+                                    size={16}
+                                    fill={i < Math.floor(rating) ? "currentColor" : "none"}
+                                    className={i < Math.floor(rating) ? "" : "text-gray-200"}
+                                />
+                            ))}
                         </div>
-                        <div className="flex flex-wrap justify-center md:justify-start gap-4 text-accent/60 mb-6">
-                            <span className="flex items-center gap-1 text-sm uppercase tracking-widest text-primary"><MapPin size={14} /> {profile?.region || 'Hudud noma\'lum'}</span>
-                            <span className="flex items-center gap-1 text-sm uppercase tracking-widest text-primary"><Briefcase size={14} /> {profile?.user?.role?.toUpperCase()}</span>
-                            <span className="flex items-center gap-1 text-sm uppercase tracking-widest text-primary">📦 {items.length} ta e'lon</span>
-                        </div>
-                        <p className="text-accent/40 max-w-2xl text-sm leading-relaxed">{profile?.bio || 'Tavsif qoldirilmagan.'}</p>
+                        <span className="text-[14px] font-black text-gray-900">{rating.toFixed(1)}</span>
+                        <span className="text-gray-300 mx-1">•</span>
+                        <span className="text-[12px] font-bold text-gray-400">{reviews.length} ta sharh</span>
                     </div>
-                    <div className="flex flex-col gap-3">
-                        {/* Contact Info */}
-                        <GlassCard className="p-4 border-white/5 bg-white/5 mb-2">
-                            {profile?.user?.phone_visible ? (
-                                <div className="flex items-center gap-3 text-white mb-2">
-                                    <div className="p-2 bg-green-500/20 rounded-full text-green-500">
-                                        <Phone size={16} />
-                                    </div>
-                                    <span className="font-mono font-bold tracking-wider">{profile.user.phone}</span>
-                                </div>
-                            ) : (
-                                <div className="text-xs text-accent/40 italic mb-2">Telefon raqam yashirilgan</div>
-                            )}
 
-                            {profile?.user?.username && (
-                                <div className="flex items-center gap-3 text-white">
-                                    <div className="p-2 bg-primary/20 rounded-full text-primary">
-                                        <AtSign size={16} />
-                                    </div>
-                                    <span className="font-medium">@{profile.user.username}</span>
-                                </div>
-                            )}
-                        </GlassCard>
+                    <div className="flex flex-wrap justify-center gap-2 mb-8">
+                        <div className="bg-[#f3f4f6] px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                            <MapPin size={14} className="text-[#7c3aed]" />
+                            <span className="text-[11px] font-black text-gray-500 uppercase">{profile?.region || 'Hudud'}</span>
+                        </div>
+                        <div className="bg-[#7c3aed] px-3 py-1.5 rounded-xl flex items-center gap-1.5">
+                            <Briefcase size={14} className="text-white" />
+                            <span className="text-[11px] font-black text-white uppercase">{profile?.user?.role}</span>
+                        </div>
+                    </div>
 
+                    <div className="max-w-md text-center mb-10">
+                        <p className="text-gray-500 text-[15px] leading-relaxed italic">
+                            {profile?.bio || 'Hozircha tavsif mavjud emas.'}
+                        </p>
+                    </div>
+
+                    <div className="w-full flex gap-3">
                         <Button
-                            variant="primary"
-                            className="px-8 py-4 flex items-center gap-3"
+                            className="flex-1 py-4 rounded-2xl shadow-lg shadow-[#7c3aed]/20 flex items-center justify-center gap-2"
                             onClick={() => navigate(`/chat/${userId}`)}
                         >
-                            <MessageSquare size={20} /> Xabar yozish
+                            <MessageSquare size={20} />
+                            Xabar yozish
                         </Button>
+                        {profile?.user?.phone_visible && (
+                            <a
+                                href={`tel:${profile.user.phone}`}
+                                className="w-14 h-14 bg-[#10b981] text-white rounded-2xl flex items-center justify-center shadow-lg shadow-[#10b981]/20"
+                            >
+                                <Phone size={24} />
+                            </a>
+                        )}
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                    {/* Catalog */}
-                    <div className="lg:col-span-2 space-y-8">
-                        <h2 className="text-2xl font-heading font-bold flex items-center gap-4 border-l-4 border-primary pl-4 uppercase tracking-tighter">
-                            Katalog / Portfolio
-                        </h2>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                            {items.map(item => (
-                                <GlassCard key={item.id} className="group border-white/5 overflow-hidden">
-                                    <img src={item.image_url} alt={item.title} className="w-full h-56 object-cover grayscale brightness-75 group-hover:grayscale-0 group-hover:scale-105 transition-all duration-700" />
-                                    <div className="p-6">
-                                        <p className="text-[10px] uppercase tracking-widest text-primary font-bold mb-2">
-                                            {categories.find(c => c.id === item.category_id)?.name || 'E\'LON'}
-                                        </p>
-                                        <h3 className="text-xl mb-4 text-white font-bold">{item.title}</h3>
-                                        <p className="text-2xl font-black text-primary italic">
-                                            {item.price ? item.price.toLocaleString() : 'Kelishilgan'}
-                                            {item.price && <span className="text-xs text-accent/40 uppercase ml-2">so'm / {item.price_type}</span>}
-                                        </p>
-                                    </div>
-                                </GlassCard>
-                            ))}
-                            {items.length === 0 && (
-                                <div className="col-span-full py-20 text-center opacity-20 uppercase tracking-[0.2em]">Hozircha e'lonlar yo'q</div>
-                            )}
-                        </div>
+                {/* Items Grid */}
+                <div className="mb-12">
+                    <h2 className="text-[20px] font-black text-gray-900 mb-6 flex items-center gap-2">
+                        <Briefcase size={22} className="text-[#7c3aed]" /> Katalog
+                    </h2>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {items.map(item => (
+                            <ProductCard
+                                key={item.id}
+                                image={item.image_url1}
+                                title={item.title}
+                                price={item.price ? `${item.price.toLocaleString()} so'm` : 'Kelishilgan'}
+                                location={item.location || profile?.region}
+                                ownerName={profile?.full_name}
+                                isVerified={profile?.is_verified}
+                                onClick={() => { }} // Already on profile
+                            />
+                        ))}
                     </div>
+                </div>
 
-                    {/* Reviews */}
-                    <div className="space-y-8">
-                        <h2 className="text-2xl font-heading font-bold flex items-center gap-4 border-l-4 border-primary pl-4 uppercase tracking-tighter">
-                            Sharhlar
-                        </h2>
+                {/* Reviews Section */}
+                <div className="mb-12">
+                    <h2 className="text-[20px] font-black text-gray-900 mb-6 flex items-center gap-2">
+                        <Star size={22} className="text-[#7c3aed]" /> Sharhlar
+                    </h2>
 
-                        {/* Add Review */}
-                        <GlassCard className="p-6 border-white/10 relative z-20">
-                            <h4 className="text-xs uppercase tracking-widest font-bold mb-6 text-accent/60">Sharh qoldirish</h4>
-                            {currentUser?.id === parseInt(userId) ? (
-                                <div className="py-4 text-center">
-                                    <p className="text-xs text-accent/40 italic">O'z profilingizga sharh qoldira olmaysiz.</p>
-                                </div>
-                            ) : (
-                                <form onSubmit={handleAddReview} className="space-y-6 relative">
-                                    <div className="flex gap-3 mb-2">
-                                        {[1, 2, 3, 4, 5].map(s => (
-                                            <button
-                                                key={s}
-                                                type="button"
-                                                onClick={() => setNewReview({ ...newReview, stars: s })}
-                                                className={`text-2xl transition-all duration-300 transform ${s <= newReview.stars ? 'text-yellow-400 scale-125' : 'text-white/10 hover:text-white/20'}`}
-                                            >
-                                                ⭐
-                                            </button>
+                    {/* Add Review */}
+                    {currentUser?.id !== parseInt(userId) && (
+                        <div className="bg-[#f9fafb] p-6 rounded-3xl border border-gray-100 mb-8">
+                            <h4 className="text-[12px] font-black text-gray-400 uppercase mb-4">Sharh qoldirish</h4>
+                            <div className="flex gap-2 mb-4">
+                                {[1, 2, 3, 4, 5].map(s => (
+                                    <button
+                                        key={s}
+                                        onClick={() => setNewReview({ ...newReview, stars: s })}
+                                        className={`transition-all ${s <= newReview.stars ? 'text-yellow-400 scale-110' : 'text-gray-200'}`}
+                                    >
+                                        <Star size={28} fill={s <= newReview.stars ? "currentColor" : "none"} />
+                                    </button>
+                                ))}
+                            </div>
+                            <textarea
+                                placeholder="Fikringizni qoldiring..."
+                                className="w-full p-4 bg-white border border-gray-100 rounded-2xl min-h-[100px] text-[15px] focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/10 mb-4"
+                                value={newReview.text}
+                                onChange={e => setNewReview({ ...newReview, text: e.target.value })}
+                            />
+                            <Button
+                                className="w-full py-4 rounded-xl"
+                                onClick={handleAddReview}
+                                disabled={submitting}
+                            >
+                                {submitting ? 'Yuborilmoqda...' : 'Sharhni yuborish'}
+                            </Button>
+                        </div>
+                    )}
+
+                    {/* Reviews List */}
+                    <div className="space-y-4">
+                        {reviews.map(rev => (
+                            <div key={rev.id} className="bg-white p-5 rounded-[24px] border border-gray-100 shadow-sm relative overflow-hidden group">
+                                <div className="absolute top-0 left-0 w-1 h-full bg-[#7c3aed] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="flex justify-between items-start mb-3">
+                                    <div className="flex text-yellow-400">
+                                        {[...Array(5)].map((_, i) => (
+                                            <Star key={i} size={14} fill={i < rev.stars ? "currentColor" : "none"} className={i < rev.stars ? "" : "text-gray-100"} />
                                         ))}
                                     </div>
-                                    <textarea
-                                        className="input-field w-full min-h-[140px] relative z-30 pointer-events-auto"
-                                        placeholder={currentUser ? "Fizkingizni shu yerga yozing..." : "Sharh qoldirish uchun tizimga kiring..."}
-                                        value={newReview.text}
-                                        onChange={e => setNewReview({ ...newReview, text: e.target.value })}
-                                        required
-                                        disabled={submitting}
-                                        style={{ WebkitAppearance: 'none', appearance: 'none' }}
-                                    />
-                                    <Button
-                                        type="submit"
-                                        className="w-full py-4 text-[11px] font-black uppercase tracking-[0.2em] relative z-30"
-                                        disabled={submitting}
-                                    >
-                                        {!currentUser ? "Kirish va Sharh qoldirish" : (submitting ? 'Yuborilmoqda...' : 'Sharhni yuborish')}
-                                    </Button>
-                                </form>
-                            )}
-                        </GlassCard>
-
-                        {/* Reviews List */}
-                        <div className="space-y-6">
-                            {reviews.map(rev => (
-                                <div key={rev.id} className="p-4 rounded-xl bg-white/5 border border-white/5">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <div className="flex text-xs gap-1">
-                                            {[...Array(5)].map((_, i) => (
-                                                <span key={i} className={i < rev.stars ? 'text-yellow-400' : 'text-white/10'}>⭐</span>
-                                            ))}
-                                        </div>
-                                        <span className="text-[8px] uppercase text-accent/20">
-                                            {new Date(rev.created_at).toLocaleDateString()}
-                                        </span>
+                                    <div className="flex items-center gap-1 text-gray-300 text-[10px] font-bold uppercase">
+                                        <Calendar size={10} />
+                                        {new Date(rev.created_at).toLocaleDateString()}
                                     </div>
-                                    <p className="text-sm text-accent/60 italic leading-relaxed">"{rev.text}"</p>
                                 </div>
-                            ))}
-                            {reviews.length === 0 && (
-                                <div className="py-12 text-center opacity-20 uppercase tracking-[0.2em] text-xs">Hech kim sharh qoldirmagan</div>
-                            )}
-                        </div>
+                                <p className="text-gray-600 text-[15px] leading-relaxed font-medium italic">"{rev.text}"</p>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>

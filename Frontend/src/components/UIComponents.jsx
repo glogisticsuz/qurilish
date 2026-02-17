@@ -128,40 +128,48 @@ export const ThemeToggle = ({ theme, toggleTheme }) => {
     );
 };
 
-// Product Card (Uzum-style)
-export const ProductCard = ({ image, title, price, location, verified, onClick }) => {
+// Product Card (iOS-style)
+export const ProductCard = ({ image, title, price, location, ownerName, isVerified, onClick }) => {
     return (
         <div
             onClick={onClick}
-            className="bg-white rounded-xl overflow-hidden border border-gray-200 transition-all duration-200 cursor-pointer hover:shadow-lg hover:-translate-y-1"
+            className="bg-white rounded-2xl overflow-hidden border border-gray-100 transition-all duration-300 cursor-pointer hover:shadow-xl group"
         >
-            <div className="relative aspect-square overflow-hidden bg-gray-100">
+            <div className="relative aspect-square overflow-hidden bg-gray-50">
                 <img
                     src={image}
                     alt={title}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
-                {verified && (
-                    <div className="absolute top-2 right-2">
-                        <Badge variant="success">✓ Tasdiqlangan</Badge>
+                {isVerified && (
+                    <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm p-1 rounded-full shadow-sm">
+                        <svg className="w-5 h-5 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
                     </div>
                 )}
             </div>
             <div className="p-4">
-                <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2 min-h-[3rem]">
+                <p className="text-[14px] font-bold text-purple-600 mb-1">{price}</p>
+                <h3 className="text-[15px] font-bold text-gray-900 mb-3 line-clamp-2 leading-tight">
                     {title}
                 </h3>
-                {location && (
-                    <p className="text-sm text-gray-500 mb-2 flex items-center gap-1">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
+                    <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-purple-600">
+                            {ownerName ? ownerName[0].toUpperCase() : '?'}
+                        </div>
+                        <span className="text-[12px] font-medium text-gray-600 truncate max-w-[80px]">
+                            {ownerName || 'Foydalanuvchi'}
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-1 text-gray-400">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                        {location}
-                    </p>
-                )}
-                <div className="flex items-center justify-between">
-                    <p className="text-xl font-bold text-purple-600">{price}</p>
+                        <span className="text-[11px] font-medium">{location || 'O\'zbekiston'}</span>
+                    </div>
                 </div>
             </div>
         </div>
