@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "MobileApp",
+    "name": "MegaStroy",
     "slug": "MobileApp",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#1B6CA8"
     },
     "ios": {
       "supportsTablet": true,
@@ -20,12 +20,17 @@
       "package": "com.yangiustalar.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#1B6CA8"
       },
       "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "84dca856-dec2-4970-a1df-27d64987ff36"
+      }
     }
   }
 }
