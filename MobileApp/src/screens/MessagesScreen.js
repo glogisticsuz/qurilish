@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Image, RefreshControl } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { chatApi } from '../api/api';
 import { MessageSquare } from 'lucide-react-native';
 
@@ -20,9 +21,11 @@ const MessagesScreen = ({ navigation }) => {
         }
     };
 
-    useEffect(() => {
-        fetchChats();
-    }, []);
+    useFocusEffect(
+        React.useCallback(() => {
+            fetchChats();
+        }, [])
+    );
 
     const onRefresh = () => {
         setRefreshing(true);

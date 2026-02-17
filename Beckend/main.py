@@ -479,6 +479,16 @@ async def get_chat_history(user_id: int, db: Session = Depends(get_db), current_
     ).order_by(models.Message.created_at.asc()).all()
     return messages
 
+@app.post("/messages/{user_id}/read")
+async def mark_messages_as_read(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    db.query(models.Message).filter(
+        models.Message.sender_id == user_id,
+        models.Message.receiver_id == current_user.id,
+        models.Message.is_read == False
+    ).update({models.Message.is_read: True})
+    db.commit()
+    return {"message": "Success"}
+
 # --- Review Endpoints ---
 
 @app.post("/reviews/{user_id}", response_model=schemas.Review)

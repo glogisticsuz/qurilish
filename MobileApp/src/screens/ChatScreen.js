@@ -16,6 +16,10 @@ const ChatScreen = ({ route, navigation }) => {
         try {
             const res = await chatApi.getHistory(userId);
             setMessages(res.data || []);
+            // Mark as read if there are messages from the other user
+            if (res.data && res.data.some(m => m.sender_id === userId && !m.is_read)) {
+                chatApi.markAsRead(userId);
+            }
         } catch (error) {
             console.error('Fetch history error:', error);
         }
@@ -23,6 +27,7 @@ const ChatScreen = ({ route, navigation }) => {
 
     useEffect(() => {
         fetchHistory();
+        chatApi.markAsRead(userId); // Initial mark as read
         const interval = setInterval(fetchHistory, 5000); // Poll every 5 seconds
         return () => clearInterval(interval);
     }, [userId]);
