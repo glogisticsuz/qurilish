@@ -1,137 +1,56 @@
-# 🚀 HamkorQurilish: Serverga Joylash Bo'yicha To'liq Qo'llanma
+# Server Deployment Guide
 
-Ushbu qo'llanma loyihani noldan boshlab Ubuntu serveriga (VPS) joylashni o'rgatadi.
+This guide will help you deploy the HamkorQurilish application to your remote server using Docker.
 
-## 📋 0-bosqich: Fayllarni serverga yuklash
-Barcha fayllarni (Beckend va Frontend) bitta papkaga serverga yuklang (masalan: `/var/www/hamkorqurilish/`).
+## 1. Server Prerequisites
+Make sure your server has the following installed:
+- **Docker**: `sudo apt-get install docker.io`
+- **Docker Compose**: `sudo apt-get install docker-compose`
+- **Git**: `sudo apt-get install git`
 
----
+## 2. Server Setup
 
-## 🐍 1-bosqich: Backend Sozlamalari (Python/FastAPI)
-
-1. **Python muhitini o'rnatish:**
-   ```bash
-   sudo apt update
-   sudo apt install python3-pip python3-venv
-   ```
-
-2. **Virtual muhit yaratish:**
-   ```bash
-   cd /var/www/hamkorqurilish/Beckend
-   python3 -m venv venv
-   source venv/bin/activate
-   ```
-
-3. **Kutubxonalarni o'rnatish:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Sozlamalar (.env):**
-   `Beckend/.env.example` faylini `.env` ga o'zgartiring va o'z ma'lumotlaringizni kiriting:
-   ```bash
-   cp .env.example .env
-   nano .env
-   ```
-   > [!IMPORTANT]
-   > `JWT_SECRET`, `ADMIN_PASSWORD` va `IMAGEKIT` kalitlarini o'zgartirishni unutmang!
-
-5. **Gunicornni test qilish:**
-   ```bash
-   gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:8000
-   ```
-
----
-
-## 🎨 2-bosqich: Frontend Sozlamalari (Vite/React)
-
-1. **Node.js o'rnatish:**
-   ```bash
-   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-   sudo apt install -y nodejs
-   ```
-
-2. **Dasturni yig'ish (Build):**
-   ```bash
-   cd /var/www/hamkorqurilish/Frontend/src
-   npm install
-   # .env.production faylini ochib, API manzilini yozing (masalan: https://api.hamkorqurilish.uz)
-   npm run build
-   ```
-   Endi `dist` papkasida tayyor sayt fayllari paydo bo'ldi.
-
----
-
-## ⚙️ 3-bosqich: Nginx Sozlamalari
-
-1. **Nginx o'rnatish:**
-   ```bash
-   sudo apt install nginx
-   ```
-
-2. **Sayt uchun yangi config yaratish:**
-   ```bash
-   sudo nano /etc/nginx/sites-available/hamkorqurilish
-   ```
-
-3. **Quyidagi kodni nusxalang:**
-   ```nginx
-   server {
-       listen 80;
-       server_name hamkorqurilish.uz www.hamkorqurilish.uz api.hamkorqurilish.uz;
-
-       # Frontend
-       location / {
-           root /var/www/hamkorqurilish/Frontend/src/dist;
-           index index.html;
-           try_files $uri $uri/ /index.html;
-       }
-
-       # Backend API Proxy
-       location /api/ {
-           proxy_pass http://127.0.0.1:8000/;
-           proxy_http_version 1.1;
-           proxy_set_header Upgrade $http_upgrade;
-           proxy_set_header Connection 'upgrade';
-           proxy_set_header Host $host;
-           proxy_cache_bypass $http_upgrade;
-       }
-   }
-   ```
-
-4. **Configni yoqish:**
-   ```bash
-   sudo ln -s /etc/nginx/sites-available/hamkorqurilish /etc/nginx/sites-enabled/
-   sudo nginx -t
-   sudo systemctl restart nginx
-   ```
-
----
-
-## 🛡️ 4-bosqich: SSL (HTTPS) o'rnatish
-
+### Step 1: Clone the Repository
+On your server, run:
 ```bash
-sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d hamkorqurilish.uz -d api.hamkorqurilish.uz
+git clone https://github.com/your-username/yangiUstalar.git
+cd yangiUstalar
 ```
 
----
+### Step 2: Configure Environment Variables
+Copy the example environment files and edit them with your production details:
 
-## 🔄 5-bosqich: Process Manager (PM2/Systemd)
-Dastur server o'chib yonganida ham o'zi ishlab ketishi uchun:
-
-**Backend uchun:**
+#### Backend
 ```bash
-# PM2 o'rnating
-sudo npm install -g pm2
+cp Beckend/.env.example Beckend/.env
+nano Beckend/.env
+```
+*Make sure to set your production bot tokens, secret keys, and database paths.*
 
-cd /var/www/hamkorqurilish/Beckend
-pm2 start "venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:8000" --name hamkorqurilish-api
-pm2 save
-pm2 startup
+#### Frontend
+```bash
+cp Frontend/.env.example Frontend/.env
+nano Frontend/.env
+```
+*Set `VITE_API_URL` to your server's IP or domain (e.g., `http://your-server-ip:8000`).*
+
+### Step 3: Set Permissions
+Make the deployment script executable:
+```bash
+chmod +x deploy.sh
 ```
 
----
+## 3. Deploy
+Run the deployment script to build and start all services:
+```bash
+./deploy.sh
+```
 
-**Hammasi tayyor!** Endi saytingiz internetda ishlashi kerak. 🎉
-Agar xatoliklar bo'lsa, `pm2 logs` yoki `sudo tail -f /var/log/nginx/error.log` buyruqlari bilan tekshiring.
+## 4. Accessing the App
+- **Frontend**: Accessible on port `80` (Standard HTTP).
+- **Backend API**: Accessible on port `8000`.
+
+## 5. Security & Maintenance
+- **Secrets**: NEVER share your `.env` files. They are ignored by Git.
+- **Updates**: To update the server, simply run `./deploy.sh` again. It will pull new code, rebuild images, and restart containers without data loss (thanks to Docker volumes).
+- **SSL**: For production, it is highly recommended to use Nginx with Certbot (Let's Encrypt) on the server to enable HTTPS.

@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  backend-api:
+    build:
+      context: ./Beckend
+    container_name: hamkor-api
+    restart: always
+    env_file:
+      - ./Beckend/.env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Beckend/megastroy.db:/app/megastroy.db
+      - ./Beckend/hamkorqurilish.db:/app/hamkorqurilish.db
+    command: uvicorn main:app --host 0.0.0.0 --port 8000
+
+  otp-bot:
+    build:
+      context: ./Beckend
+    container_name: hamkor-otp-bot
+    restart: always
+    env_file:
+      - ./Beckend/.env
+    volumes:
+      - ./Beckend/megastroy.db:/app/megastroy.db
+    command: python bot.py
+
+  support-bot:
+    build:
+      context: ./Beckend
+    container_name: hamkor-support-bot
+    restart: always
+    env_file:
+      - ./Beckend/.env
+    command: python support_bot.py
+
+  frontend:
+    build:
+      context: ./Frontend
+    container_name: hamkor-frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend-api
