@@ -39,6 +39,7 @@ const PostAdScreen = ({ navigation }) => {
         { id: 2, name: 'Texnika Ijarasi', role: 'supplier', icon: '🚜' },
         { id: 3, name: 'Qurilish Mollari', role: 'supplier', icon: '🧱' },
         { id: 4, name: 'Prorablar', role: 'pro', icon: '📋' },
+        { id: 5, name: 'Ish e\'lonlari', role: 'customer', icon: '💼' },
         { id: 6, name: 'Boshqa xizmatlar', role: 'pro', icon: '🛠️' }
     ];
 
@@ -92,7 +93,11 @@ const PostAdScreen = ({ navigation }) => {
         setImages(newImages);
     };
 
-    const filteredCategories = categories.filter(c => c.role === user?.role?.toLowerCase() || user?.role?.toLowerCase() === 'admin');
+    const filteredCategories = categories.filter(c =>
+        c.role === user?.role?.toLowerCase() ||
+        user?.role?.toLowerCase() === 'admin' ||
+        (user?.role?.toLowerCase() === 'customer' && c.role === 'customer')
+    );
 
     const handleSubmit = async () => {
         if (!data.title) return Alert.alert('Xato', 'Sarlavhani kiriting');

@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-db_path = "megastroy.db"
+db_path = "hamkorqurilish.db"
 if os.path.exists(db_path):
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()

@@ -9,7 +9,15 @@ from dotenv import load_dotenv
 # Environment variables
 load_dotenv()
 API_TOKEN = os.getenv('SUPPORT_BOT_TOKEN')
-raw_channel_id = os.getenv('SUPPORT_CHANNEL_ID', '@Megastroy_channel')
+raw_channel_id = os.getenv('SUPPORT_CHANNEL_ID', '@HamkorQurilish_murojat')
+ADMIN_ID = os.getenv('SUPPORT_ADMIN_ID')
+
+# Convert ADMIN_ID to int if available
+if ADMIN_ID:
+    try:
+        ADMIN_ID = int(ADMIN_ID)
+    except:
+        logging.error(f"Invalid ADMIN_ID: {ADMIN_ID}")
 
 # Try to convert to int if it's a numeric ID (starts with -100)
 try:
@@ -31,7 +39,18 @@ bot = telebot.TeleBot(API_TOKEN)
 # Foydalanuvchi holatlarini saqlash uchun lug'at
 user_data = {}
 
+def get_main_keyboard():
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    keyboard.add(
+        types.KeyboardButton("👨‍💻 Adminga murojaat"),
+        types.KeyboardButton("💰 Reklama narxlari"),
+        types.KeyboardButton("❓ Ko'p beriladigan savollar"),
+        types.KeyboardButton("🏠 Bosh menyu")
+    )
+    return keyboard
+
 @bot.message_handler(commands=['start', 'help'])
+@bot.message_handler(func=lambda m: m.text == "🏠 Bosh menyu")
 def send_welcome(message):
     chat_id = message.chat.id
     # Har safardan start bosilganda holatni tozalash
@@ -42,29 +61,43 @@ def send_welcome(message):
         types.InlineKeyboardButton("👨‍💻 Adminga murojaat", callback_data='contact_admin'),
         types.InlineKeyboardButton("💰 Reklama narxlari", callback_data='ads_prices'),
         types.InlineKeyboardButton("❓ Ko'p beriladigan savollar", callback_data='faq'),
-        types.InlineKeyboardButton("🌐 Saytga o'tish", url='https://megastroy.uz')
+        types.InlineKeyboardButton("🌐 Saytga o'tish", url='https://hamkorqurilish.uz')
     )
     
     try:
-        bot.reply_to(
-            message,
-            "Assalomu alaykum! <b>MegaStroy</b> qo'llab-quvvatlash botiga xush kelibsiz.\n\n"
+        bot.send_message(
+            chat_id,
+            "Assalomu alaykum! <b>HamkorQurilish</b> qo'llab-quvvatlash botiga xush kelibsiz.\n\n"
             "Sizga qanday yordam bera olamiz?\n"
-            "Pastdagi tugmalardan birini tanlang:",
+            "Pastdagi tugmalardan birini tanlang yoki menyudan foydalaning:",
+            reply_markup=get_main_keyboard(),
+            parse_mode='HTML'
+        )
+        # Hamda inline klaviaturani ham yuboramiz
+        bot.send_message(
+            chat_id,
+            "Bo'limni tanlang:",
             reply_markup=keyboard,
             parse_mode='HTML'
         )
     except Exception as e:
         logging.error(f"Error in start command: {e}")
 
+@bot.message_handler(func=lambda m: m.text == "👨‍💻 Adminga murojaat")
+def handle_contact_btn(message):
+    process_contact_admin_core(message.chat.id)
+
 @bot.callback_query_handler(func=lambda call: call.data == 'contact_admin')
 def process_contact_admin(call):
-    chat_id = call.message.chat.id
     bot.answer_callback_query(call.id)
+    process_contact_admin_core(call.message.chat.id)
+
+def process_contact_admin_core(chat_id):
     msg = bot.send_message(
         chat_id,
         "📝 Iltimos, murojaatingiz <b>mavzusini</b> (sarlavhasini) kiriting:",
-        parse_mode='HTML'
+        parse_mode='HTML',
+        reply_markup=types.ReplyKeyboardRemove() # Murojaat paytida menyuni yopamiz
     )
     bot.register_next_step_handler(msg, get_subject)
 
@@ -134,64 +167,122 @@ def get_phone_and_finalize(message):
         f"  └ <b>Ism:</b> {full_name}\n"
         f"  └ <b>Username:</b> {username}\n"
         f"  └ <b>Tel:</b> <code>{phone}</code>\n"
+        f"  └ <b>ID:</b> <code>{chat_id}</code>\n"
         "━━━━━━━━━━━━━━━━━━"
     )
     
+    sent_to_channel = False
+    sent_to_admin = False
+    error_details = []
+
+    # Send to Channel
     try:
-        logging.info(f"Attempting to send report to {CHANNEL_ID}")
+        logging.info(f"Attempting to send report to Channel {CHANNEL_ID}")
         bot.send_message(CHANNEL_ID, report_text, parse_mode='HTML')
-        logging.info("Report sent successfully to channel")
+        sent_to_channel = True
+        logging.info("Sent to Channel successfully")
+    except Exception as e:
+        error_details.append(f"Kanal: {str(e)}")
+        logging.error(f"Error sending to channel: {e}")
+
+    # Send to Admin (if configured)
+    if ADMIN_ID:
+        try:
+            logging.info(f"Attempting to send report to Admin {ADMIN_ID}")
+            bot.send_message(ADMIN_ID, report_text, parse_mode='HTML')
+            sent_to_admin = True
+            logging.info("Sent to Admin successfully")
+        except Exception as e:
+            error_details.append(f"Admin: {str(e)}")
+            logging.error(f"Error sending to admin: {e}")
+
+    if sent_to_channel or sent_to_admin:
         bot.send_message(
             chat_id,
             "✅ Rahmat! Murojaatingiz adminga muvaffaqiyatli yetkazildi.\n"
             "Tez orada siz bilan bog'lanishadi.",
-            reply_markup=types.ReplyKeyboardRemove(),
+            reply_markup=get_main_keyboard(),
             parse_mode='HTML'
         )
-    except Exception as e:
-        error_msg = html.escape(str(e))
-        logging.error(f"Error sending to channel: {traceback.format_exc()}")
+    else:
+        detailed_error = "\n".join(error_details)
         bot.send_message(
             chat_id,
-            f"❌ <b>Xatolik yuz berdi:</b> Bot kanalga xabar yubora olmadi.\n\n"
-            f"<b>Sababi:</b> {error_msg}\n\n"
-            f"Iltimos, bot @Megastroy_channel kanalida <b>Admin</b> ekanligini va xabar yuborish huquqi borligini tekshiring.",
+            f"❌ <b>Xatolik yuz berdi:</b> Murojaat yetkazilmadi.\n\n"
+            f"<b>Sababi:</b>\n{detailed_error}\n\n"
+            f"Iltimos, bot kanalda admin ekanligini va ruxsatlar borligini tekshiring.",
             parse_mode='HTML',
-            reply_markup=types.ReplyKeyboardRemove()
+            reply_markup=get_main_keyboard()
         )
-    finally:
-        user_data.pop(chat_id, None)
+    # Cleanup user state
+    user_data.pop(chat_id, None)
 
+@bot.message_handler(func=lambda message: message.reply_to_message is not None and message.from_user.id == ADMIN_ID)
+def handle_admin_reply(message):
+    try:
+        # Get the original report text from the message being replied to
+        original_text = message.reply_to_message.text or message.reply_to_message.caption
+        
+        if not original_text:
+            return
+
+        # Try to find the User ID in the text
+        # Format: ID: 123456789
+        import re
+        match = re.search(r'ID:\s*(\d+)', original_text)
+        
+        if match:
+            user_chat_id = int(match.group(1))
+            reply_text = f"<b>🔔 Admindan javob keldi:</b>\n\n{html.escape(message.text)}"
+            
+            bot.send_message(user_chat_id, reply_text, parse_mode='HTML')
+            bot.reply_to(message, "✅ Javob foydalanuvchiga yuborildi.")
+        else:
+            bot.reply_to(message, "❌ Xatolik: Xabardan foydalanuvchi ID si topilmadi.")
+            
+    except Exception as e:
+        logging.error(f"Error in handle_admin_reply: {e}")
+        bot.reply_to(message, f"❌ Xatolik: {e}")
+
+@bot.message_handler(func=lambda m: m.text == "💰 Reklama narxlari")
 @bot.callback_query_handler(func=lambda call: call.data == 'ads_prices')
-def process_ads_prices(call):
-    bot.answer_callback_query(call.id)
-    prices_text = (
-        "📊 **Reklama xizmatlari va narxlari:**\n\n"
-        "🏷 **Splash Screen (Ilova ochilganda):**\n"
-        "   └ 150,000 so'm / haftasiga\n\n"
-        "🚩 **Asosiy sahifa (Banner):**\n"
-        "   └ 100,000 so'm / haftasiga\n\n"
-        "🔝 **E'lonni TOP'ga chiqarish:**\n"
-        "   └ 50,000 so'm / haftasiga\n\n"
-        "📢 **Telegram kanalda post:**\n"
-        "   └ 30,000 so'm (bir martalik)\n\n"
-        "💡 *Barcha narxlar kelishiladi.* Murojaat uchun tepada 'Adminga murojaat' tugmasini bosing."
-    )
-    bot.send_message(call.from_user.id, prices_text, parse_mode='Markdown')
+def process_ads_prices(target):
+    # Handle both Message and CallbackQuery
+    chat_id = target.chat.id if hasattr(target, 'chat') else target.from_user.id
+    if hasattr(target, 'id') and not hasattr(target, 'chat'): # CallbackQuery
+        bot.answer_callback_query(target.id)
 
-@bot.callback_query_handler(func=lambda call: call.data == 'faq')
-def process_faq(call):
-    bot.answer_callback_query(call.id)
-    faq_text = (
-        "❓ **Ko'p beriladigan savollar:**\n\n"
-        "**Q: Qanday qilib usta sifatida ro'yxatdan o'taman?**\n"
-        "**A:** Ilovani yuklab oling, profil bo'limida 'Mutaxassis' rolini tanlang.\n\n"
-        "**Q: E'lon berish bepulmi?**\n"
-        "**A:** Oddiy e'lonlar bepul, pullik xizmatlar orqali ko'proq mijoz topishingiz mumkin.\n\n"
-        "**Q: To'lovlarni qanday amalga oshiraman?**\n"
-        "**A:** Hozirda Payme va Click tizimlari orqali (tez orada)."
+    prices_text = (
+        "📊 <b>Reklama xizmatlari va narxlari:</b>\n\n"
+        "🏷 <b>Splash Screen (Ilova ochilganda):</b>\n"
+        "   └ 150,000 so'm / haftasiga\n\n"
+        "🚩 <b>Asosiy sahifa (Banner):</b>\n"
+        "   └ 100,000 so'm / haftasiga\n\n"
+        "🔝 <b>E'lonni TOP'ga chiqarish:</b>\n"
+        "   └ 50,000 so'm / haftasiga\n\n"
+        "📢 <b>Telegram kanalda post:</b>\n"
+        "   └ 30,000 so'm (bir martalik)\n\n"
+        "💡 <i>Barcha narxlar kelishiladi.</i> Murojaat uchun tepada 'Adminga murojaat' tugmasini bosing."
     )
-    bot.send_message(call.from_user.id, faq_text, parse_mode='Markdown')
+    bot.send_message(chat_id, prices_text, parse_mode='HTML', reply_markup=get_main_keyboard())
+
+@bot.message_handler(func=lambda m: m.text == "❓ Ko'p beriladigan savollar")
+@bot.callback_query_handler(func=lambda call: call.data == 'faq')
+def process_faq(target):
+    chat_id = target.chat.id if hasattr(target, 'chat') else target.from_user.id
+    if hasattr(target, 'id') and not hasattr(target, 'chat'):
+        bot.answer_callback_query(target.id)
+
+    faq_text = (
+        "❓ <b>Ko'p beriladigan savollar:</b>\n\n"
+        "<b>Q: Qanday qilib usta sifatida ro'yxatdan o'taman?</b>\n"
+        "<b>A:</b> Ilovani yuklab oling, profil bo'limida 'Mutaxassis' rolini tanlang.\n\n"
+        "<b>Q: E'lon berish bepulmi?</b>\n"
+        "<b>A:</b> Oddiy e'lonlar bepul, pullik xizmatlar orqali ko'proq mijoz topishingiz mumkin.\n\n"
+        "<b>Q: To'lovlarni qanday amalga oshiraman?</b>\n"
+        "<b>A:</b> Hozirda Payme va Click tizimlari orqali (tez orada)."
+    )
+    bot.send_message(chat_id, faq_text, parse_mode='HTML', reply_markup=get_main_keyboard())
 
 if __name__ == '__main__':
     logging.info("Bot ishga tushirildi (Telebot)...")

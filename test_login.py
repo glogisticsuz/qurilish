@@ -5,7 +5,7 @@ url = "http://localhost:8000/admin/login"
 headers = {"Content-Type": "application/json"}
 data = {
     "username": "Megastroy+998916006046",
-    "password": "megastroy_2026_6046"
+    "password": "hamkorqurilish_2026_6046"
 }
 
 try:

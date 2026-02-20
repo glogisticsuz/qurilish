@@ -52,11 +52,26 @@ const Chat = () => {
     const handleSend = async (e) => {
         if (e) e.preventDefault();
         if (!newMessage.trim()) return;
+
+        const tempId = Date.now();
+        const optimisticMsg = {
+            id: tempId,
+            sender_id: currentUser?.id,
+            content: newMessage,
+            created_at: new Date().toISOString(),
+            is_pending: true
+        };
+
+        setMessages(prev => [...prev, optimisticMsg]);
+        const textToSend = newMessage;
+        setNewMessage('');
+
         try {
-            const res = await chatApi.sendMessage({ receiver_id: userId, content: newMessage });
-            setMessages(prev => [...prev, res.data]);
-            setNewMessage('');
-        } catch (err) { alert("Xabar yuborishda xatolik"); }
+            const res = await chatApi.sendMessage({ receiver_id: userId, content: textToSend });
+            setMessages(prev => prev.map(m => m.id === tempId ? res.data : m));
+        } catch (err) {
+            setMessages(prev => prev.map(m => m.id === tempId ? { ...m, is_error: true } : m));
+        }
     };
 
     const handleImageClick = () => {
@@ -104,8 +119,8 @@ const Chat = () => {
                     return (
                         <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                             <div className={`max-w-[75%] rounded-[20px] px-4 py-2.5 shadow-sm ${isMe
-                                    ? 'bg-[#7c3aed] text-white rounded-br-sm'
-                                    : 'bg-[#f3f4f6] text-[#1f2937] rounded-bl-sm'
+                                ? 'bg-[#7c3aed] text-white rounded-br-sm'
+                                : 'bg-[#f3f4f6] text-[#1f2937] rounded-bl-sm'
                                 }`}>
                                 {msg.image_url ? (
                                     <div className="mb-1 rounded-lg overflow-hidden bg-black/5">
@@ -122,6 +137,11 @@ const Chat = () => {
                                     <span className="text-[10px] font-medium">
                                         {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                     </span>
+                                    {isMe && (
+                                        msg.is_pending ? <span className="text-[10px]">🕒</span> :
+                                            msg.is_error ? <span className="text-[10px]">⚠️</span> :
+                                                <span className="text-[10px]">✓</span>
+                                    )}
                                 </div>
                             </div>
                         </div>

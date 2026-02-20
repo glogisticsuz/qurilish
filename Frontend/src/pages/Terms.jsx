@@ -29,7 +29,7 @@ const Terms = () => {
                     <section className="space-y-4">
                         <h2 className="text-xl font-bold text-white uppercase tracking-wider">1. Umumiy qoidalar</h2>
                         <p>
-                            MegaStroy platformasi qurilish xizmatlari va texnika ijarasi bo'yicha e'lonlar joylashtirish uchun mo'ljallangan.
+                            HamkorQurilish platformasi qurilish xizmatlari va texnika ijarasi bo'yicha e'lonlar joylashtirish uchun mo'ljallangan.
                             Biz usta va mijoz o'rtasidagi kelishuvlarda qatnashmaymiz.
                         </p>
                     </section>

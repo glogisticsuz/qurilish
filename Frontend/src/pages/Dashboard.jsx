@@ -41,6 +41,7 @@ const Dashboard = () => {
         { id: 2, name: 'Texnika ijarasi', icon: '🚜', role: 'supplier' },
         { id: 3, name: 'Qurilish mollari', icon: '🧱', role: 'supplier' },
         { id: 4, name: 'Prorablar', icon: '📋', role: 'pro' },
+        { id: 5, name: 'Ish e\'lonlari', icon: '💼', role: 'customer' },
         { id: 6, name: 'Boshqa xizmatlar', icon: '🛠️', role: 'pro' }
     ];
 
@@ -77,7 +78,7 @@ const Dashboard = () => {
         formData.append('title', newItem.title);
         formData.append('price', newItem.price || 0);
         formData.append('price_type', newItem.price_type);
-        formData.append('category_id', newItem.category_id || (filteredCategories[0]?.id || 1));
+        formData.append('category_id', newItem.category_id || (filteredCategories[0]?.id || 5));
 
         try {
             await profileApi.uploadPortfolio(formData);

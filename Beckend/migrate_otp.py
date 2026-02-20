@@ -15,7 +15,7 @@ def migrate():
         print("Connected to PostgreSQL")
     except Exception:
         print("PostgreSQL connection failed. Using SQLite fallback...")
-        db_url = "sqlite:///./megastroy.db"
+        db_url = "sqlite:///./hamkorqurilish.db"
         engine = create_engine(db_url)
 
     with engine.connect() as conn:

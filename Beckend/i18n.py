@@ -1,4 +1,4 @@
-# i18n Translation System for MegaStroy
+# i18n Translation System for HamkorQurilish
 
 translations = {
     "uz": {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Image, Alert, SafeAreaView, KeyboardAvoidingView, Platform, Modal, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TextInput, ScrollView, TouchableOpacity, Image, Alert, KeyboardAvoidingView, Platform, Modal, FlatList } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, Camera, Save, User, MapPin, ChevronDown, X, Check } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { profileApi, authApi } from '../api/api';

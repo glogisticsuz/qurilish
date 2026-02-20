@@ -1,24 +1,78 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, SafeAreaView, Dimensions, Share, Modal, FlatList, Linking } from 'react-native';
-import { ChevronLeft, MapPin, MessageCircle, Share2, ShieldCheck, Heart, Star, X } from 'lucide-react-native';
-import { Button } from '../components/UIComponents';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions, Share, Modal, FlatList, Linking, TextInput, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { ChevronLeft, MapPin, MessageCircle, Share2, ShieldCheck, Heart, Star, X, Calendar } from 'lucide-react-native';
+import { Button, Input, Spinner } from '../components/UIComponents';
+import api, { reviewApi, authApi } from '../api/api';
 
 const { width, height } = Dimensions.get('window');
 
 const ProductDetailScreen = ({ route, navigation }) => {
     const { item } = route.params;
     const [isImageModalVisible, setIsImageModalVisible] = useState(false);
+    const [reviews, setReviews] = useState([]);
+    const [loadingReviews, setLoadingReviews] = useState(true);
+    const [newReview, setNewReview] = useState({ stars: 5, text: '' });
+    const [submittingReview, setSubmittingReview] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
 
-    // Mock Reviews - in real app, fetch from API
-    const reviews = [
-        { id: 1, user: 'Azizbek', rating: 5, comment: 'Juda sifatli xizmat, rahmat!', date: '12.02.2024' },
-        { id: 2, user: 'Sardor', rating: 4, comment: 'Tez va arzon.', date: '10.02.2024' },
-    ];
+    React.useEffect(() => {
+        fetchReviews();
+        checkUser();
+    }, []);
+
+    const fetchReviews = async () => {
+        try {
+            const userId = item.userId || item.profile?.user_id;
+            if (userId) {
+                const res = await reviewApi.getReviews(userId);
+                setReviews(res.data || []);
+            }
+        } catch (error) {
+            console.error('Fetch reviews error:', error);
+        } finally {
+            setLoadingReviews(false);
+        }
+    };
+
+    const checkUser = async () => {
+        try {
+            const res = await authApi.getMe();
+            setCurrentUser(res.data);
+        } catch (e) { }
+    };
+
+    const handleAddReview = async () => {
+        if (!currentUser) {
+            navigation.navigate('Login');
+            return;
+        }
+        if (!newReview.text.trim()) {
+            Alert.alert('Xato', 'Fikringizni yozing');
+            return;
+        }
+
+        setSubmittingReview(true);
+        try {
+            const userId = item.userId || item.profile?.user_id;
+            await reviewApi.addReview(userId, {
+                stars: newReview.stars,
+                text: newReview.text
+            });
+            setNewReview({ stars: 5, text: '' });
+            fetchReviews();
+            Alert.alert('Muvaffaqiyat', 'Sharhingiz qabul qilindi');
+        } catch (error) {
+            Alert.alert('Xato', error.response?.data?.detail || 'Sharh yuborishda xatolik');
+        } finally {
+            setSubmittingReview(false);
+        }
+    };
 
     const onShare = async () => {
         try {
             await Share.share({
-                message: `MegaStroy: ${item.title}\nNarxi: ${item.price}\nManzil: ${item.location}`,
+                message: `HamkorQurilish: ${item.title}\nNarxi: ${item.price}\nManzil: ${item.location}`,
             });
         } catch (error) {
             console.error(error.message);
@@ -75,7 +129,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
 
                     {/* Instagram-style Description right under title */}
                     <Text style={styles.description}>
-                        {item.description || "Ushbu xizmat/mahsulot MegaStroy platformasi orqali kafolatlangan va sinovdan o'tgan mutaxassislar tomonidan taqdim etiladi."}
+                        {item.description || "Ushbu xizmat/mahsulot HamkorQurilish platformasi orqali kafolatlangan va sinovdan o'tgan mutaxassislar tomonidan taqdim etiladi."}
                     </Text>
 
                     <View style={styles.locationRow}>
@@ -122,24 +176,64 @@ const ProductDetailScreen = ({ route, navigation }) => {
                     {/* Reviews Section */}
                     <View style={styles.reviewsHeader}>
                         <Text style={styles.sectionTitle}>Sharhlar</Text>
-                        <TouchableOpacity>
-                            <Text style={styles.seeAllText}>Barchasi</Text>
-                        </TouchableOpacity>
+                        <Text style={styles.reviewCount}>{reviews.length} ta</Text>
                     </View>
 
-                    {reviews.map((review) => (
-                        <View key={review.id} style={styles.reviewItem}>
-                            <View style={styles.reviewHeader}>
-                                <Text style={styles.reviewUser}>{review.user}</Text>
-                                <View style={styles.ratingContainer}>
-                                    <Star size={14} color="#f59e0b" fill="#f59e0b" />
-                                    <Text style={styles.ratingText}>{review.rating}</Text>
+                    {/* Add Review Form */}
+                    {currentUser?.id !== (item.userId || item.profile?.user_id) && (
+                        <View style={styles.addReviewBox}>
+                            <Text style={styles.addReviewTitle}>SHARH QOLDIRISH</Text>
+                            <View style={styles.starRow}>
+                                {[1, 2, 3, 4, 5].map(s => (
+                                    <TouchableOpacity key={s} onPress={() => setNewReview({ ...newReview, stars: s })}>
+                                        <Star
+                                            size={32}
+                                            color={s <= newReview.stars ? "#f59e0b" : "#e5e7eb"}
+                                            fill={s <= newReview.stars ? "#f59e0b" : "none"}
+                                        />
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                            <TextInput
+                                style={styles.reviewInput}
+                                placeholder="Xizmat haqida fikringizni yozing..."
+                                value={newReview.text}
+                                onChangeText={(t) => setNewReview({ ...newReview, text: t })}
+                                multiline
+                            />
+                            <Button
+                                title={submittingReview ? "YUBORILMOQDA..." : "YUBORISH"}
+                                disabled={submittingReview}
+                                onPress={handleAddReview}
+                                style={styles.submitReviewBtn}
+                            />
+                        </View>
+                    )}
+
+                    {loadingReviews ? (
+                        <ActivityIndicator color="#7c3aed" style={{ marginVertical: 20 }} />
+                    ) : reviews.length === 0 ? (
+                        <Text style={styles.noReviews}>Hozircha sharhlar yo'q</Text>
+                    ) : (
+                        reviews.map((review) => (
+                            <View key={review.id} style={styles.reviewItem}>
+                                <View style={styles.reviewHeader}>
+                                    <Text style={styles.reviewUser}>Mijoz</Text>
+                                    <View style={styles.ratingContainer}>
+                                        <Star size={14} color="#f59e0b" fill="#f59e0b" />
+                                        <Text style={styles.ratingText}>{review.stars}</Text>
+                                    </View>
+                                </View>
+                                <Text style={styles.reviewComment}>{review.text}</Text>
+                                <View style={styles.reviewDateRow}>
+                                    <Calendar size={12} color="#9ca3af" />
+                                    <Text style={styles.reviewDate}>
+                                        {new Date(review.created_at).toLocaleDateString()}
+                                    </Text>
                                 </View>
                             </View>
-                            <Text style={styles.reviewComment}>{review.comment}</Text>
-                            <Text style={styles.reviewDate}>{review.date}</Text>
-                        </View>
-                    ))}
+                        ))
+                    )}
 
                 </View>
             </ScrollView>
@@ -437,6 +531,59 @@ const styles = StyleSheet.create({
     reviewDate: {
         fontSize: 12,
         color: '#9ca3af',
+        marginLeft: 4,
+    },
+    reviewDateRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 4,
+    },
+    reviewCount: {
+        fontSize: 14,
+        color: '#9ca3af',
+        fontWeight: 'bold',
+    },
+    addReviewBox: {
+        backgroundColor: '#f9fafb',
+        padding: 20,
+        borderRadius: 24,
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: '#f3f4f6',
+    },
+    addReviewTitle: {
+        fontSize: 12,
+        fontWeight: '900',
+        color: '#6b7280',
+        marginBottom: 16,
+        letterSpacing: 1,
+    },
+    starRow: {
+        flexDirection: 'row',
+        gap: 8,
+        marginBottom: 20,
+    },
+    reviewInput: {
+        backgroundColor: '#fff',
+        borderRadius: 16,
+        padding: 16,
+        fontSize: 15,
+        color: '#1f2937',
+        minHeight: 100,
+        textAlignVertical: 'top',
+        borderWidth: 1,
+        borderColor: '#f3f4f6',
+        marginBottom: 16,
+    },
+    submitReviewBtn: {
+        height: 54,
+        borderRadius: 16,
+    },
+    noReviews: {
+        textAlign: 'center',
+        color: '#9ca3af',
+        marginVertical: 20,
+        fontStyle: 'italic',
     }
 });
 

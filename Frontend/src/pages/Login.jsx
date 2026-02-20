@@ -163,7 +163,7 @@ const Login = () => {
                                     Kod kelmadimi?
                                 </p>
                                 <a
-                                    href="https://t.me/MegaStroy_support_bot"
+                                    href="https://t.me/HamkorQurilish_support_bot"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="flex items-center justify-center gap-2 text-purple-600 hover:text-purple-700 font-medium"
@@ -171,7 +171,7 @@ const Login = () => {
                                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                                         <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12C22 6.48 17.52 2 12 2ZM16.64 8.8C16.49 9.58 13.9 20.37 13.75 21.01C13.68 21.31 13.43 21.36 13.2 21.21C12.79 20.94 9.17 18.55 8.71 18.25C8.42 18.06 8.39 17.79 8.68 17.58C9.5 16.99 14.15 12.82 14.21 12.69C14.28 12.56 14.13 12.49 14.02 12.56C13.88 12.65 8.54 16.03 7.85 16.47C7.4 16.76 7.15 16.71 6.84 16.63C6.18 16.46 4.96 16.07 4.15 15.82C3.69 15.68 3.65 15.35 4.3 15.11C7.62 13.86 15.54 10.65 16.45 10.27C16.8 10.12 17.15 10.03 17.15 10.43C17.15 10.63 17.03 11.23 16.64 8.8V8.8Z" />
                                     </svg>
-                                    @MegaStroy_support_bot
+                                    @HamkorQurilish_support_bot
                                 </a>
                                 <p className="text-xs text-gray-500 mt-2 text-center">
                                     Botga /start bosing va raqamingizni yuboring
@@ -190,7 +190,7 @@ const Login = () => {
                 </div>
 
                 <p className="text-center mt-6 text-gray-400 dark:text-gray-600 text-xs">
-                    © 2026 MegaStroy. Barcha huquqlar himoyalangan.
+                    © 2026 HamkorQurilish. Barcha huquqlar himoyalangan.
                 </p>
             </div>
         </div>

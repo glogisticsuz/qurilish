@@ -3,7 +3,7 @@ from Beckend import models
 from sqlalchemy import create_engine
 
 # Force the engine to use the correct file
-engine = create_engine("sqlite:///Beckend/megastroy.db")
+engine = create_engine("sqlite:///Beckend/hamkorqurilish.db")
 SessionLocal.configure(bind=engine)
 
 db = SessionLocal()

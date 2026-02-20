@@ -1,6 +1,6 @@
-# MegaStroy Mobile App (React Native & Expo)
+# HamkorQurilish Mobile App (React Native & Expo)
 
-Ushbu loyiha MegaStroy platformasining rasmiy mobil ilovasi bo'lib, iOS va Android platformalarida ishlaydi. Ilova Expo framework yordamida React Native-da ishlab chiqilgan.
+Ushbu loyiha HamkorQurilish platformasining rasmiy mobil ilovasi bo'lib, iOS va Android platformalarida ishlaydi. Ilova Expo framework yordamida React Native-da ishlab chiqilgan.
 
 ## 🚀 Ishga tushirish (Getting Started)
 

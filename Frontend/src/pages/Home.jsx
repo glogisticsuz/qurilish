@@ -106,7 +106,7 @@ const Home = () => {
     const displayItems = getInterleavedItems();
 
     return (
-        <div className="min-h-screen bg-[#f9fafb] pb-24">
+        <div className="min-h-screen bg-[#ffffff] pb-24">
             {showSplashAd && <SplashAd onClose={() => setShowSplashAd(false)} />}
 
             {/* iOS Style Hero Section */}
@@ -163,9 +163,12 @@ const Home = () => {
                     </div>
                 ) : (
                     <div className="flex justify-between items-center mb-6 animate-in fade-in duration-300">
-                        <div>
-                            <h1 className="text-[32px] font-black text-white leading-tight">MegaStroy</h1>
-                            <p className="text-purple-200 text-sm">Barcha qurilish xizmatlari bir joyda</p>
+                        <div className="flex items-center gap-3">
+                            <img src="/logo.png" alt="HamkorQurilish" className="w-12 h-12 rounded-xl border border-white/20 shadow-sm" />
+                            <div>
+                                <h1 className="text-[24px] font-black text-white leading-tight">HamkorQurilish</h1>
+                                <p className="text-purple-200 text-[12px]">Barcha qurilish xizmatlari bir joyda</p>
+                            </div>
                         </div>
                         <button
                             onClick={() => setIsSearchOpen(true)}
@@ -227,7 +230,7 @@ const Home = () => {
                         <p className="text-gray-400 font-bold">Ma'lumot topilmadi</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                         {displayItems.map((item, index) => (
                             item.type === 'product' ? (
                                 <ProductCard
@@ -324,8 +327,8 @@ const Home = () => {
                                         }
                                     }}
                                     className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${selectedRegion.id === region.id
-                                            ? 'bg-purple-50 text-[#7c3aed]'
-                                            : 'hover:bg-gray-50 text-gray-600'
+                                        ? 'bg-purple-50 text-[#7c3aed]'
+                                        : 'hover:bg-gray-50 text-gray-600'
                                         }`}
                                 >
                                     <span className="font-bold">{region.name}</span>
@@ -366,8 +369,8 @@ const Home = () => {
                                     setIsDistrictModalOpen(false);
                                 }}
                                 className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${!selectedDistrict
-                                        ? 'bg-purple-50 text-[#7c3aed]'
-                                        : 'hover:bg-gray-50 text-gray-600'
+                                    ? 'bg-purple-50 text-[#7c3aed]'
+                                    : 'hover:bg-gray-50 text-gray-600'
                                     }`}
                             >
                                 <span className="font-bold">Barcha tumanlar</span>
@@ -381,8 +384,8 @@ const Home = () => {
                                         setIsDistrictModalOpen(false);
                                     }}
                                     className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all ${selectedDistrict === district
-                                            ? 'bg-purple-50 text-[#7c3aed]'
-                                            : 'hover:bg-gray-50 text-gray-600'
+                                        ? 'bg-purple-50 text-[#7c3aed]'
+                                        : 'hover:bg-gray-50 text-gray-600'
                                         }`}
                                 >
                                     <span className="font-bold">{district}</span>

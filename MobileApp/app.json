@@ -1,16 +1,16 @@
 {
   "expo": {
-    "name": "MegaStroy",
-    "slug": "MobileApp",
+    "name": "HamkorQurilish",
+    "slug": "HamkorQurilish",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/app-icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/splash-new.png",
       "resizeMode": "contain",
-      "backgroundColor": "#1B6CA8"
+      "backgroundColor": "#FFFFFF"
     },
     "ios": {
       "supportsTablet": true,
@@ -19,8 +19,8 @@
     "android": {
       "package": "com.yangiustalar.app",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#1B6CA8"
+        "foregroundImage": "./assets/adaptive-icon-new.png",
+        "backgroundColor": "#FFFFFF"
       },
       "edgeToEdgeEnabled": true
     },

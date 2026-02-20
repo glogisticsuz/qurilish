@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-db_path = "megastroy.db"
+db_path = "hamkorqurilish.db"
 
 def migrate():
     if not os.path.exists(db_path):

@@ -1,9 +1,9 @@
-# 🚀 MegaStroy: Serverga Joylash Bo'yicha To'liq Qo'llanma
+# 🚀 HamkorQurilish: Serverga Joylash Bo'yicha To'liq Qo'llanma
 
 Ushbu qo'llanma loyihani noldan boshlab Ubuntu serveriga (VPS) joylashni o'rgatadi.
 
 ## 📋 0-bosqich: Fayllarni serverga yuklash
-Barcha fayllarni (Beckend va Frontend) bitta papkaga serverga yuklang (masalan: `/var/www/megastroy/`).
+Barcha fayllarni (Beckend va Frontend) bitta papkaga serverga yuklang (masalan: `/var/www/hamkorqurilish/`).
 
 ---
 
@@ -17,7 +17,7 @@ Barcha fayllarni (Beckend va Frontend) bitta papkaga serverga yuklang (masalan: 
 
 2. **Virtual muhit yaratish:**
    ```bash
-   cd /var/www/megastroy/Beckend
+   cd /var/www/hamkorqurilish/Beckend
    python3 -m venv venv
    source venv/bin/activate
    ```
@@ -53,9 +53,9 @@ Barcha fayllarni (Beckend va Frontend) bitta papkaga serverga yuklang (masalan: 
 
 2. **Dasturni yig'ish (Build):**
    ```bash
-   cd /var/www/megastroy/Frontend/src
+   cd /var/www/hamkorqurilish/Frontend/src
    npm install
-   # .env.production faylini ochib, API manzilini yozing (masalan: https://api.megastroy.uz)
+   # .env.production faylini ochib, API manzilini yozing (masalan: https://api.hamkorqurilish.uz)
    npm run build
    ```
    Endi `dist` papkasida tayyor sayt fayllari paydo bo'ldi.
@@ -71,18 +71,18 @@ Barcha fayllarni (Beckend va Frontend) bitta papkaga serverga yuklang (masalan: 
 
 2. **Sayt uchun yangi config yaratish:**
    ```bash
-   sudo nano /etc/nginx/sites-available/megastroy
+   sudo nano /etc/nginx/sites-available/hamkorqurilish
    ```
 
 3. **Quyidagi kodni nusxalang:**
    ```nginx
    server {
        listen 80;
-       server_name megastroy.uz www.megastroy.uz api.megastroy.uz;
+       server_name hamkorqurilish.uz www.hamkorqurilish.uz api.hamkorqurilish.uz;
 
        # Frontend
        location / {
-           root /var/www/megastroy/Frontend/src/dist;
+           root /var/www/hamkorqurilish/Frontend/src/dist;
            index index.html;
            try_files $uri $uri/ /index.html;
        }
@@ -101,7 +101,7 @@ Barcha fayllarni (Beckend va Frontend) bitta papkaga serverga yuklang (masalan: 
 
 4. **Configni yoqish:**
    ```bash
-   sudo ln -s /etc/nginx/sites-available/megastroy /etc/nginx/sites-enabled/
+   sudo ln -s /etc/nginx/sites-available/hamkorqurilish /etc/nginx/sites-enabled/
    sudo nginx -t
    sudo systemctl restart nginx
    ```
@@ -112,7 +112,7 @@ Barcha fayllarni (Beckend va Frontend) bitta papkaga serverga yuklang (masalan: 
 
 ```bash
 sudo apt install certbot python3-certbot-nginx
-sudo certbot --nginx -d megastroy.uz -d api.megastroy.uz
+sudo certbot --nginx -d hamkorqurilish.uz -d api.hamkorqurilish.uz
 ```
 
 ---
@@ -125,8 +125,8 @@ Dastur server o'chib yonganida ham o'zi ishlab ketishi uchun:
 # PM2 o'rnating
 sudo npm install -g pm2
 
-cd /var/www/megastroy/Beckend
-pm2 start "venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:8000" --name megastroy-api
+cd /var/www/hamkorqurilish/Beckend
+pm2 start "venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app --bind 0.0.0.0:8000" --name hamkorqurilish-api
 pm2 save
 pm2 startup
 ```

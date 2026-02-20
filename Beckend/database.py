@@ -9,14 +9,16 @@ load_dotenv()
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
 try:
-    if not SQLALCHEMY_DATABASE_URL or "postgresql" in SQLALCHEMY_DATABASE_URL:
-        # Check if we can actually connect to Postgres, otherwise use SQLite
+    if SQLALCHEMY_DATABASE_URL and "postgresql" in SQLALCHEMY_DATABASE_URL:
+        # Check if we can actually connect to Postgres
         engine = create_engine(SQLALCHEMY_DATABASE_URL)
         engine.connect()
     else:
-        engine = create_engine(SQLALCHEMY_DATABASE_URL)
-except Exception:
-    print("PostgreSQL ulanishda xatolik. SQLite ishlatilmoqda...")
+        # If no URL or not postgres, use SQLite
+        SQLALCHEMY_DATABASE_URL = "sqlite:///./megastroy.db"
+        engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+except Exception as e:
+    print(f"Baza ulanishida xatolik: {e}. SQLite ishlatilmoqda...")
     SQLALCHEMY_DATABASE_URL = "sqlite:///./megastroy.db"
     engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
 

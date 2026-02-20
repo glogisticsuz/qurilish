@@ -66,7 +66,7 @@ async def send_telegram_otp(phone: str, db: Session, telegram_id: Optional[int] 
                 logger.info(f"Sending TG message to {telegram_id}...")
                 response = await client.post(url, json={
                     "chat_id": telegram_id,
-                    "text": f"Sizning MegaStroy tasdiqlash kodingiz: {otp}"
+                    "text": f"Sizning HamkorQurilish tasdiqlash kodingiz: {otp}"
                 })
                 logger.info(f"TG Status: {response.status_code}")
             except Exception as e:

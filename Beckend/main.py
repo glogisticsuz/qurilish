@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 models.Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="MegaStroy API")
+app = FastAPI(title="HamkorQurilish API")
 
 # CORS configuration - Tighten this in production!
 app.add_middleware(
@@ -38,7 +38,7 @@ app.include_router(admin_ads.router)
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to MegaStroy API"}
+    return {"message": "Welcome to HamkorQurilish API"}
 
 @app.post("/auth/login", response_model=schemas.LoginRequest)
 async def login(request: schemas.LoginRequest, db: Session = Depends(get_db)):
@@ -350,21 +350,20 @@ async def send_message(msg: schemas.MessageCreate, db: Session = Depends(get_db)
     sender_profile = db.query(models.Profile).filter(models.Profile.user_id == current_user.id).first()
     sender_name = sender_profile.full_name if sender_profile and sender_profile.full_name else "Foydalanuvchi"
     
-    if receiver and receiver.telegram_id and receiver.id != current_user.id:
-        import httpx
-        import os
-        TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-        notification_text = f"🔔 Yangi xabar!\n\n👤 {sender_name}:\n{msg.content[:100]}{'...' if len(msg.content) > 100 else ''}"
-        
-        async with httpx.AsyncClient() as client:
-            try:
-                await client.post(url, json={
-                    "chat_id": receiver.telegram_id,
-                    "text": notification_text
-                })
-            except Exception as e:
-                print(f"Telegram notification error: {e}")
+    # Silent Chat: Disabled Telegram notifications for internal messages per user request.
+    # if receiver and receiver.telegram_id and receiver.id != current_user.id:
+    #     import httpx
+    #     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    #     notification_text = f"🔔 Yangi xabar!\n\n👤 {sender_name}:\n{msg.content[:100]}{'...' if len(msg.content) > 100 else ''}"
+    #     
+    #     async with httpx.AsyncClient() as client:
+    #         try:
+    #             await client.post(url, json={
+    #                 "chat_id": receiver.telegram_id,
+    #                 "text": notification_text
+    #             })
+    #         except Exception as e:
+    #             print(f"Telegram notification error: {e}")
     
     return new_msg
 
@@ -445,29 +444,21 @@ async def send_message_with_image(
     db.refresh(new_msg)
     
     # Notification logic
-    receiver = db.query(models.User).filter(models.User.id == receiver_id).first()
-    sender_profile = db.query(models.Profile).filter(models.Profile.user_id == current_user.id).first()
-    sender_name = sender_profile.full_name if sender_profile and sender_profile.full_name else "Foydalanuvchi"
-
-    if receiver and receiver.telegram_id and receiver.id != current_user.id:
-        import httpx
-        import os
-        TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
-        url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendPhoto"
-        
-        caption = f"🔔 Yangi rasm yuborildi!\n\n👤 {sender_name}"
-        if content:
-            caption += f"\n\n{content[:100]}"
-
-        async with httpx.AsyncClient() as client:
-            try:
-                await client.post(url, json={
-                    "chat_id": receiver.telegram_id,
-                    "photo": image_url,
-                    "caption": caption
-                })
-            except Exception as e:
-                print(f"Telegram image notification error: {e}")
+    # Silent Chat: Disabled Telegram notifications for internal messages per user request.
+    # if receiver and receiver.telegram_id and receiver.id != current_user.id:
+    #     import httpx
+    #     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    #     content_preview = content[:50] + "..." if content else "Rasm yuborildi 📸"
+    #     notification_text = f"🔔 Yangi xabar!\n\n👤 {sender_name}:\n{content_preview}"
+    #     
+    #     async with httpx.AsyncClient() as client:
+    #         try:
+    #             await client.post(url, json={
+    #                 "chat_id": receiver.telegram_id,
+    #                 "text": notification_text
+    #             })
+    #         except Exception as e:
+    #             print(f"Telegram notification error: {e}")
 
     return new_msg
 

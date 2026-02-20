@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Alert, RefreshControl, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Camera, MapPin, Briefcase, Trash2, LogOut, Settings, Plus } from 'lucide-react-native';
 import RNAsyncStorage from '@react-native-async-storage/async-storage';
 import { profileApi, authApi } from '../api/api';
@@ -84,110 +85,112 @@ const ProfileScreen = ({ navigation }) => {
     };
 
     return (
-        <ScrollView
-            style={styles.container}
-            refreshControl={
-                <RefreshControl
-                    refreshing={Boolean(refreshing)}
-                    onRefresh={onRefresh}
-                    tintColor="#7c3aed"
-                    colors={['#7c3aed']}
-                />
-            }
-            showsVerticalScrollIndicator={Boolean(false)}
-        >
-            <View style={styles.header}>
-                <View style={styles.profileInfo}>
-                    <View style={styles.avatarContainer}>
-                        {profile?.avatar_url ? (
-                            <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
-                        ) : (
-                            <View style={[styles.avatar, styles.placeholderAvatar]}>
-                                <Camera color="#9ca3af" size={32} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <ScrollView
+                style={styles.container}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={Boolean(refreshing)}
+                        onRefresh={onRefresh}
+                        tintColor="#7c3aed"
+                        colors={['#7c3aed']}
+                    />
+                }
+                showsVerticalScrollIndicator={Boolean(false)}
+            >
+                <View style={styles.header}>
+                    <View style={styles.profileInfo}>
+                        <View style={styles.avatarContainer}>
+                            {profile?.avatar_url ? (
+                                <Image source={{ uri: profile.avatar_url }} style={styles.avatar} />
+                            ) : (
+                                <View style={[styles.avatar, styles.placeholderAvatar]}>
+                                    <Camera color="#9ca3af" size={32} />
+                                </View>
+                            )}
+                            {Boolean(profile?.is_verified) ? (
+                                <View style={styles.verifiedBadge}>
+                                    <Text style={styles.verifiedText}>✓</Text>
+                                </View>
+                            ) : null}
+                        </View>
+                        <View style={styles.textInfo}>
+                            <Text style={styles.name}>{profile?.full_name || 'Foydalanuvchi'}</Text>
+                            <Text style={{ fontSize: 14, color: '#6b7280', marginTop: 2 }}>{user?.phone}</Text>
+                            <View style={styles.badgeRow}>
+                                <View style={styles.badge}>
+                                    <MapPin size={12} color="#7c3aed" />
+                                    <Text style={styles.badgeText}>{profile?.region || 'Hudud'}</Text>
+                                </View>
+                                <TouchableOpacity
+                                    style={[styles.badge, styles.roleBadge]}
+                                    onLongPress={() => {
+                                        Alert.alert(
+                                            "Rolni o'zgartirish (Debug)",
+                                            "Rolni tanlang:",
+                                            [
+                                                { text: "Mijoz", onPress: () => authApi.updateRole('customer').then(fetchData) },
+                                                { text: "Usta", onPress: () => authApi.updateRole('pro').then(fetchData) },
+                                                { text: "Texnika", onPress: () => authApi.updateRole('supplier').then(fetchData) },
+                                                { text: "Bekor qilish", style: "cancel" }
+                                            ]
+                                        );
+                                    }}
+                                >
+                                    <Briefcase size={12} color="#fff" />
+                                    <Text style={[styles.badgeText, styles.roleBadgeText]}>{user?.role?.toUpperCase()}</Text>
+                                </TouchableOpacity>
                             </View>
-                        )}
-                        {Boolean(profile?.is_verified) ? (
-                            <View style={styles.verifiedBadge}>
-                                <Text style={styles.verifiedText}>✓</Text>
-                            </View>
-                        ) : null}
-                    </View>
-                    <View style={styles.textInfo}>
-                        <Text style={styles.name}>{profile?.full_name || 'Foydalanuvchi'}</Text>
-                        <Text style={{ fontSize: 14, color: '#6b7280', marginTop: 2 }}>{user?.phone}</Text>
-                        <View style={styles.badgeRow}>
-                            <View style={styles.badge}>
-                                <MapPin size={12} color="#7c3aed" />
-                                <Text style={styles.badgeText}>{profile?.region || 'Hudud'}</Text>
-                            </View>
-                            <TouchableOpacity
-                                style={[styles.badge, styles.roleBadge]}
-                                onLongPress={() => {
-                                    Alert.alert(
-                                        "Rolni o'zgartirish (Debug)",
-                                        "Rolni tanlang:",
-                                        [
-                                            { text: "Mijoz", onPress: () => authApi.updateRole('customer').then(fetchData) },
-                                            { text: "Usta", onPress: () => authApi.updateRole('pro').then(fetchData) },
-                                            { text: "Texnika", onPress: () => authApi.updateRole('supplier').then(fetchData) },
-                                            { text: "Bekor qilish", style: "cancel" }
-                                        ]
-                                    );
-                                }}
-                            >
-                                <Briefcase size={12} color="#fff" />
-                                <Text style={[styles.badgeText, styles.roleBadgeText]}>{user?.role?.toUpperCase()}</Text>
-                            </TouchableOpacity>
                         </View>
                     </View>
-                </View>
 
-                <View style={styles.actionRow}>
-                    <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('EditProfile')}>
-                        <Settings color="#4b5563" size={20} />
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.iconButton, styles.logoutButton]} onPress={handleLogout}>
-                        <LogOut color="#ef4444" size={20} />
-                    </TouchableOpacity>
-                </View>
-            </View>
-
-            <View style={styles.content}>
-                <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Mening e'lonlarim</Text>
-                    <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('PostAd')}>
-                        <Plus color="#fff" size={20} />
-                        <Text style={styles.addButtonText}>Yangi</Text>
-                    </TouchableOpacity>
-                </View>
-
-                {portfolio.length === 0 ? (
-                    <View style={styles.emptyState}>
-                        <Text style={styles.emptyText}>Hali e'lonlar yo'q</Text>
+                    <View style={styles.actionRow}>
+                        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('EditProfile')}>
+                            <Settings color="#4b5563" size={20} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={[styles.iconButton, styles.logoutButton]} onPress={handleLogout}>
+                            <LogOut color="#ef4444" size={20} />
+                        </TouchableOpacity>
                     </View>
-                ) : (
-                    <View style={styles.grid}>
-                        {portfolio.map(item => (
-                            <View key={item.id} style={styles.card}>
-                                <Image source={{ uri: item.image_url1 }} style={styles.cardImage} />
-                                <View style={styles.cardOverlay}>
-                                    <TouchableOpacity
-                                        style={styles.deleteButton}
-                                        onPress={() => handleDelete(item.id)}
-                                    >
-                                        <Trash2 color="#fff" size={16} />
-                                    </TouchableOpacity>
-                                </View>
-                                <View style={styles.cardContent}>
-                                    <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
-                                    <Text style={styles.cardPrice}>{item.price?.toLocaleString()} so'm</Text>
-                                </View>
-                            </View>
-                        ))}
+                </View>
+
+                <View style={styles.content}>
+                    <View style={styles.sectionHeader}>
+                        <Text style={styles.sectionTitle}>Mening e'lonlarim</Text>
+                        <TouchableOpacity style={styles.addButton} onPress={() => navigation.navigate('PostAd')}>
+                            <Plus color="#fff" size={20} />
+                            <Text style={styles.addButtonText}>Yangi</Text>
+                        </TouchableOpacity>
                     </View>
-                )}
-            </View>
-        </ScrollView>
+
+                    {portfolio.length === 0 ? (
+                        <View style={styles.emptyState}>
+                            <Text style={styles.emptyText}>Hali e'lonlar yo'q</Text>
+                        </View>
+                    ) : (
+                        <View style={styles.grid}>
+                            {portfolio.map(item => (
+                                <View key={item.id} style={styles.card}>
+                                    <Image source={{ uri: item.image_url1 }} style={styles.cardImage} />
+                                    <View style={styles.cardOverlay}>
+                                        <TouchableOpacity
+                                            style={styles.deleteButton}
+                                            onPress={() => handleDelete(item.id)}
+                                        >
+                                            <Trash2 color="#fff" size={16} />
+                                        </TouchableOpacity>
+                                    </View>
+                                    <View style={styles.cardContent}>
+                                        <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+                                        <Text style={styles.cardPrice}>{item.price?.toLocaleString()} so'm</Text>
+                                    </View>
+                                </View>
+                            ))}
+                        </View>
+                    )}
+                </View>
+            </ScrollView>
+        </SafeAreaView>
     );
 };
 

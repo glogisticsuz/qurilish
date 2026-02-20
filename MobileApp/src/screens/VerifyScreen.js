@@ -61,7 +61,7 @@ const VerifyScreen = ({ route, navigation }) => {
                 <Button
                     title="Kod olish (Telegram)"
                     variant="outline"
-                    onPress={() => Linking.openURL('https://t.me/MegaStroy_support_bot')}
+                    onPress={() => Linking.openURL('https://t.me/Hamkor_support_bot')}
                     style={styles.telegramButton}
                 />
 

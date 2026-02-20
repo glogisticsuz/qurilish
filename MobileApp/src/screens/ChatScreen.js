@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, SafeAreaView, Image, Alert, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Image, Alert, Modal, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Send, ChevronLeft, Camera, Image as ImageIcon } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 import api, { chatApi } from '../api/api';
@@ -35,17 +36,25 @@ const ChatScreen = ({ route, navigation }) => {
     const handleSend = async () => {
         if (!newMessage.trim()) return;
 
-        const messageData = {
-            receiver_id: userId,
+        const tempId = 'temp-' + Date.now();
+        const optimisticMessage = {
+            id: tempId,
+            sender_id: 'me', // To treat as sent by me for the UI
             content: newMessage,
+            created_at: new Date().toISOString(),
+            is_pending: true
         };
 
+        setMessages(prev => [...prev, optimisticMessage]);
+        const textToSend = newMessage;
+        setNewMessage('');
+
         try {
-            await chatApi.sendMessage(messageData);
-            setNewMessage('');
-            fetchHistory();
+            const res = await chatApi.sendMessage({ receiver_id: userId, content: textToSend });
+            setMessages(prev => prev.map(m => m.id === tempId ? res.data : m));
         } catch (error) {
             console.error('Send message error:', error);
+            setMessages(prev => prev.map(m => m.id === tempId ? { ...m, is_error: true } : m));
         }
     };
 
@@ -161,7 +170,8 @@ const ChatScreen = ({ route, navigation }) => {
                     ]}>
                         <View style={[
                             styles.messageBubble,
-                            item.sender_id === userId ? styles.receivedBubble : styles.sentBubble
+                            (item.sender_id === userId) ? styles.receivedBubble : styles.sentBubble,
+                            item.is_error ? { backgroundColor: '#fee2e2' } : null
                         ]}>
                             {item.image_url ? (
                                 <TouchableOpacity
@@ -190,12 +200,19 @@ const ChatScreen = ({ route, navigation }) => {
                                     {item.content}
                                 </Text>
                             ) : null}
-                            <Text style={[
-                                styles.messageTime,
-                                item.sender_id !== userId ? styles.sentMessageTime : null
-                            ]}>
-                                {item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                            </Text>
+                            <View style={styles.timeWrapper}>
+                                <Text style={[
+                                    styles.messageTime,
+                                    item.sender_id !== userId ? styles.sentMessageTime : null
+                                ]}>
+                                    {item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                </Text>
+                                {item.sender_id !== userId && (
+                                    item.is_pending ? <Text style={styles.statusIcon}>🕒</Text> :
+                                        item.is_error ? <Text style={styles.statusIcon}>⚠️</Text> :
+                                            <Text style={styles.statusIcon}>✓</Text>
+                                )}
+                            </View>
                         </View>
                     </View>
                 )}
@@ -334,6 +351,17 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
     sentMessageTime: {
+        color: 'rgba(255,255,255,0.7)',
+    },
+    timeWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: 4,
+        marginTop: 4,
+    },
+    statusIcon: {
+        fontSize: 10,
         color: 'rgba(255,255,255,0.7)',
     },
     inputContainer: {

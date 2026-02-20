@@ -91,9 +91,15 @@ const HomeScreen = ({ navigation, route }) => {
                     </View>
                 ) : (
                     <View style={styles.headerRow}>
-                        <View>
-                            <Text style={styles.heroTitle}>MegaStroy</Text>
-                            <Text style={styles.heroSubtitle}>Barcha qurilish xizmatlari bir joyda</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                            <Image
+                                source={require('../../assets/app-icon.png')}
+                                style={{ width: 48, height: 48, borderRadius: 12 }}
+                            />
+                            <View>
+                                <Text style={styles.heroTitle}>HamkorQurilish</Text>
+                                <Text style={styles.heroSubtitle}>Barcha qurilish xizmatlari bir joyda</Text>
+                            </View>
                         </View>
                         <TouchableOpacity
                             style={styles.searchButton}
@@ -308,7 +314,7 @@ const HomeScreen = ({ navigation, route }) => {
             {/* Floating Support Button */}
             <TouchableOpacity
                 style={styles.supportButton}
-                onPress={() => Linking.openURL('https://t.me/Megastroy_support_user_bot')}
+                onPress={() => Linking.openURL('https://t.me/Hamkor_Support_User_bot')}
             >
                 <Headset color="#fff" size={28} />
             </TouchableOpacity>
@@ -319,7 +325,7 @@ const HomeScreen = ({ navigation, route }) => {
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
-        backgroundColor: '#f9fafb',
+        backgroundColor: '#ffffff',
     },
     hero: {
         backgroundColor: '#7c3aed',
@@ -329,7 +335,7 @@ const styles = StyleSheet.create({
         borderBottomRightRadius: 32,
     },
     heroTitle: {
-        fontSize: 32,
+        fontSize: 24,
         fontWeight: '900',
         color: '#fff',
     },

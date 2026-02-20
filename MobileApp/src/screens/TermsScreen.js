@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft } from 'lucide-react-native';
 
 const TermsScreen = ({ navigation }) => {
@@ -15,12 +16,12 @@ const TermsScreen = ({ navigation }) => {
             <ScrollView style={styles.content}>
                 <Text style={styles.sectionTitle}>1. Platformaning roli</Text>
                 <Text style={styles.text}>
-                    MegaStroy — bu qurilish ustalari, texnika egalari va qurilish materiallari yetkazib beruvchilarni mijozlar bilan bog'lovchi onlayn platformadir. Biz xizmat ko'rsatuvchi emasmiz, balki faqat "ulovchi" (connector) vazifasini bajaramiz.
+                    HamkorQurilish — bu qurilish ustalari, texnika egalari va qurilish materiallari yetkazib beruvchilarni mijozlar bilan bog'lovchi onlayn platformadir. Biz xizmat ko'rsatuvchi emasmiz, balki faqat "ulovchi" (connector) vazifasini bajaramiz.
                 </Text>
 
                 <Text style={styles.sectionTitle}>2. Mas'uliyatni cheklash</Text>
                 <Text style={styles.text}>
-                    - MegaStroy foydalanuvchilar tomonidan taqdim etilgan ma'lumotlarning aniqligiga va xizmat sifatiga kafolat bermaydi.
+                    - HamkorQurilish foydalanuvchilar tomonidan taqdim etilgan ma'lumotlarning aniqligiga va xizmat sifatiga kafolat bermaydi.
                     - Barcha kelishuvlar ikki tomon o'rtasida to'g'ridan-to'g'ri amalga oshiriladi.
                     - Platforma kelishuvlar natijasida yuzaga keladigan moddiy yoki ma'naviy zararlar uchun javobgar emas.
                 </Text>
@@ -38,7 +39,7 @@ const TermsScreen = ({ navigation }) => {
 
                 <Text style={styles.sectionTitle}>5. Shartlarning o'zgarishi</Text>
                 <Text style={styles.text}>
-                    MegaStroy foydalanish shartlarini istalgan vaqtda o'zgartirish huquqini saqlab qoladi. O'zgarishlar ilova orqali bildiriladi.
+                    HamkorQurilish foydalanish shartlarini istalgan vaqtda o'zgartirish huquqini saqlab qoladi. O'zgarishlar ilova orqali bildiriladi.
                 </Text>
             </ScrollView>
         </SafeAreaView>

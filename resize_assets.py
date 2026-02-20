@@ -17,15 +17,15 @@ def resize_icon(source, target, size):
         resized.save(target)
         print(f"Saved {target} ({size}x{size})")
 
-def resize_splash(source, target, width, height, bg_color=(27, 108, 168)): # #1B6CA8
+def resize_splash(source, target, width, height, bg_color=(255, 255, 255)): # White #FFFFFF
     with Image.open(source) as img:
         img = img.convert("RGBA")
         
         # Create full splash canvas
         splash = Image.new("RGB", (width, height), bg_color)
         
-        # Resize logo to fit nicely (e.g. 30% of splash width)
-        logo_width = int(width * 0.4)
+        # Resize logo to fit nicely (e.g. 50% of splash width for enter.png)
+        logo_width = int(width * 0.5)
         aspect_ratio = img.height / img.width
         logo_height = int(logo_width * aspect_ratio)
         
@@ -39,15 +39,18 @@ def resize_splash(source, target, width, height, bg_color=(27, 108, 168)): # #1B
         print(f"Saved {target} ({width}x{height})")
 
 if __name__ == "__main__":
-    src = "c:/Users/king/Desktop/yangiUstalar/MobileApp/assets/logo.png"
     assets_dir = "c:/Users/king/Desktop/yangiUstalar/MobileApp/assets"
+    icon_src = os.path.join(assets_dir, "icon.png")
+    splash_src = os.path.join(assets_dir, "enter.png")
     
     # 1. Main Icon (1024x1024)
-    resize_icon(src, os.path.join(assets_dir, "icon.png"), 1024)
+    resize_icon(icon_src, os.path.join(assets_dir, "app-icon.png"), 1024)
     
-    # 2. Adaptive Icon (1024x1024) - Just use the same logo but centered
-    resize_icon(src, os.path.join(assets_dir, "adaptive-icon.png"), 1024)
+    # 2. Adaptive Icon (1024x1024)
+    resize_icon(icon_src, os.path.join(assets_dir, "adaptive-icon-new.png"), 1024)
     
-    # 3. Splash Screen (2048x2048 or phone specific)
-    # Standard choice for Expo is 1242x2436
-    resize_splash(src, os.path.join(assets_dir, "splash-icon.png"), 1242, 2436)
+    # 3. Splash Screen (1242x2436)
+    resize_splash(splash_src, os.path.join(assets_dir, "splash-new.png"), 1242, 2436)
+    
+    # 4. Favicon (for web)
+    resize_icon(icon_src, os.path.join("c:/Users/king/Desktop/yangiUstalar/Frontend/public", "favicon.png"), 64)

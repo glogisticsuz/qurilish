@@ -33,7 +33,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     
     await update.message.reply_text(
-        "Xush kelibsiz! MegaStroy platformasi rasmiy botiga xush kelibsiz. \n\nRaqamingizni tasdiqlash uchun 'Raqamni ulash' tugmasini bosing yoki quyidagi bo'limlardan birini tanlang.",
+        "Xush kelibsiz! HamkorQurilish platformasi rasmiy botiga xush kelibsiz. \n\nRaqamingizni tasdiqlash uchun 'Raqamni ulash' tugmasini bosing yoki quyidagi bo'limlardan birini tanlang.",
         reply_markup=keyboard
     )
 
@@ -47,12 +47,12 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Siz platformamizda splash, banner yoki inline turdagi reklamalarni joylashtirishingiz mumkin.\n\n"
             "Batafsil ma'lumot va narxlar uchun admin bilan bog'laning:\n"
             "📞 Tel: +998 90 123 45 67\n"
-            "👤 Admin: @MegaStroy_Admin"
+            "👤 Admin: @HamkorQurilish_Admin"
         )
     elif text == "Adminga murojaat 👨‍💻":
         await update.message.reply_text(
             "👨‍💻 Savol va takliflaringiz bo'lsa admin bilan bog'laning:\n\n"
-            "👤 Admin: @MegaStroy_Admin\n"
+            "👤 Admin: @HamkorQurilish_Admin\n"
             "⏰ Ish vaqti: 09:00 - 18:00\n\n"
             "Iltimos, murojaatingizni yozib qoldiring, admin tez orada javob beradi."
         )
@@ -76,7 +76,7 @@ async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
             # Check for database-backed OTP
             if user.otp_code:
                 await update.message.reply_text(
-                    f"Sizning MegaStroy tasdiqlash kodingiz: {user.otp_code}\n\nUshbu kodni saytga kiriting."
+                    f"Sizning HamkorQurilish tasdiqlash kodingiz: {user.otp_code}\n\nUshbu kodni saytga kiriting."
                 )
         else:
             # Create new user if not exists

@@ -1,4 +1,4 @@
-// i18n Translation System for MegaStroy Frontend
+// i18n Translation System for HamkorQurilish Frontend
 
 const translations = {
     uz: {

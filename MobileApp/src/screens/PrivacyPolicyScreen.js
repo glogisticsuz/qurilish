@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft } from 'lucide-react-native';
 
 const PrivacyPolicyScreen = ({ navigation }) => {
@@ -15,7 +16,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             <ScrollView style={styles.content}>
                 <Text style={styles.sectionTitle}>1. Ma'lumotlarni to'plash</Text>
                 <Text style={styles.text}>
-                    MegaStroy ilovasi orqali biz sizning telefon raqamingiz, ismingiz va profilingiz uchun tanlangan hudud ma'lumotlarini to'playmiz. Bu sizga sifatli xizmat ko'rsatish va boshqa foydalanuvchilar bilan bog'lanish uchun zarurdir.
+                    HamkorQurilish ilovasi orqali biz sizning telefon raqamingiz, ismingiz va profilingiz uchun tanlangan hudud ma'lumotlarini to'playmiz. Bu sizga sifatli xizmat ko'rsatish va boshqa foydalanuvchilar bilan bog'lanish uchun zarurdir.
                 </Text>
 
                 <Text style={styles.sectionTitle}>2. Ma'lumotlardan foydalanish</Text>
@@ -33,7 +34,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
 
                 <Text style={styles.sectionTitle}>4. Uchinchi tomonlar</Text>
                 <Text style={styles.text}>
-                    MegaStroy sizning shaxsiy ma'lumotlaringizni uchinchi tomonlarga sotmaydi yoki ijaraga bermaydi.
+                    HamkorQurilish sizning shaxsiy ma'lumotlaringizni uchinchi tomonlarga sotmaydi yoki ijaraga bermaydi.
                 </Text>
 
                 <Text style={styles.sectionTitle}>5. Maxfiylikni boshqarish</Text>

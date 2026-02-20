@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, Image, KeyboardAvoidingView, Platform, Alert, Linking, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '../components/UIComponents';
 import { authApi } from '../api/api';
 
@@ -27,63 +28,66 @@ const LoginScreen = ({ navigation }) => {
     };
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            style={styles.container}
-        >
-            <View style={styles.content}>
-                <View style={styles.logoContainer}>
-                    <View style={styles.logo}>
-                        <Text style={styles.logoText}>M</Text>
-                    </View>
-                    <Text style={styles.title}>MegaStroy</Text>
-                    <Text style={styles.subtitle}>Platformaga xush kelibsiz</Text>
-                </View>
-
-                <View style={styles.form}>
-                    <Text style={styles.label}>Telefon raqamingiz</Text>
-                    <TextInput
-                        style={styles.input}
-                        placeholder="+998 90 123 45 67"
-                        keyboardType="phone-pad"
-                        value={phone}
-                        onChangeText={setPhone}
-                    />
-
-                    <Text style={styles.label}>Sizning rolingiz</Text>
-                    <View style={styles.roleContainer}>
-                        {['customer', 'pro', 'supplier'].map((r) => (
-                            <Button
-                                key={r}
-                                title={r === 'customer' ? 'Mijoz' : r === 'pro' ? 'Usta' : 'Texnika'}
-                                variant={role === r ? 'primary' : 'outline'}
-                                style={styles.roleButton}
-                                onPress={() => setRole(r)}
-                            />
-                        ))}
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.container}
+            >
+                <View style={styles.content}>
+                    <View style={styles.logoContainer}>
+                        <Image
+                            source={require('../../assets/app-icon.png')}
+                            style={{ width: 80, height: 80, borderRadius: 24, marginBottom: 16 }}
+                        />
+                        <Text style={styles.title}>HamkorQurilish</Text>
+                        <Text style={styles.subtitle}>Platformaga xush kelibsiz</Text>
                     </View>
 
-                    <Button
-                        title={loading ? "Yuborilmoqda..." : "KIRISH"}
-                        onPress={handleLogin}
-                        style={styles.loginButton}
-                        disabled={loading === true}
-                    />
-                </View>
+                    <View style={styles.form}>
+                        <Text style={styles.label}>Telefon raqamingiz</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="+998 90 123 45 67"
+                            keyboardType="phone-pad"
+                            value={phone}
+                            onChangeText={setPhone}
+                        />
 
-                <View style={styles.footer}>
-                    <Text style={styles.footerText}>Kirish orqali siz bizning </Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('Terms')}>
-                        <Text style={styles.link}>Foydalanish shartlari</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.footerText}> va </Text>
-                    <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
-                        <Text style={styles.link}>Maxfiylik siyosati</Text>
-                    </TouchableOpacity>
-                    <Text style={styles.footerText}>ga rozilik berasiz.</Text>
+                        <Text style={styles.label}>Sizning rolingiz</Text>
+                        <View style={styles.roleContainer}>
+                            {['customer', 'pro', 'supplier'].map((r) => (
+                                <Button
+                                    key={r}
+                                    title={r === 'customer' ? 'Mijoz' : r === 'pro' ? 'Usta' : 'Texnika'}
+                                    variant={role === r ? 'primary' : 'outline'}
+                                    style={styles.roleButton}
+                                    onPress={() => setRole(r)}
+                                />
+                            ))}
+                        </View>
+
+                        <Button
+                            title={loading ? "Yuborilmoqda..." : "KIRISH"}
+                            onPress={handleLogin}
+                            style={styles.loginButton}
+                            disabled={loading === true}
+                        />
+                    </View>
+
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>Kirish orqali siz bizning </Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('Terms')}>
+                            <Text style={styles.link}>Foydalanish shartlari</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.footerText}> va </Text>
+                        <TouchableOpacity onPress={() => navigation.navigate('PrivacyPolicy')}>
+                            <Text style={styles.link}>Maxfiylik siyosati</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.footerText}>ga rozilik berasiz.</Text>
+                    </View>
                 </View>
-            </View>
-        </KeyboardAvoidingView>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 };
 

@@ -89,7 +89,7 @@ def apply_watermark(file_content):
         logger.error(f"Watermark error: {e}")
         return file_content
 
-async def upload_image(file_content, file_name, folder="/megastroy", apply_logo=False):
+async def upload_image(file_content, file_name, folder="/hamkorqurilish", apply_logo=False):
     """
     Uploads a file to ImageKit and returns the URL.
     """

@@ -46,7 +46,7 @@ const AdminLogin = () => {
                         </div>
                     </div>
                     <h1 className="text-3xl font-bold text-white mb-2">Admin Panel</h1>
-                    <p className="text-purple-100">MegaStroy Platform</p>
+                    <p className="text-purple-100">HamkorQurilish Platform</p>
                 </div>
 
                 <div className="bg-white rounded-2xl shadow-2xl p-8">
@@ -57,7 +57,7 @@ const AdminLogin = () => {
                             </label>
                             <Input
                                 type="text"
-                                name="username_admin_megastroy"
+                                name="username_admin_hamkorqurilish"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 placeholder="Megastroy+998916006046"
@@ -72,7 +72,7 @@ const AdminLogin = () => {
                             </label>
                             <Input
                                 type="password"
-                                name="password_admin_megastroy"
+                                name="password_admin_hamkorqurilish"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="••••••••"
@@ -94,7 +94,7 @@ const AdminLogin = () => {
                 </div>
 
                 <p className="text-center mt-6 text-purple-100 text-xs">
-                    © 2026 MegaStroy Admin Panel
+                    © 2026 HamkorQurilish Admin Panel
                 </p>
             </div>
         </div>

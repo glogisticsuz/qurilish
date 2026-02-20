@@ -35,7 +35,7 @@
 /* Custom Utilities for Dark Mode compatibility */
 @layer base {
   :root {
-    --bg-base: #F4F6F9;
+    --bg-base: #FFFFFF;
     --bg-paper: #FFFFFF;
     --text-primary: #1e1e1e;
     --text-secondary: #757575;
