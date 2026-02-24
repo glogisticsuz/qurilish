@@ -242,7 +242,11 @@ const ProductDetailScreen = ({ route, navigation }) => {
             <View style={styles.bottomBar}>
                 <TouchableOpacity
                     style={styles.chatButton}
-                    onPress={() => navigation.navigate('Chat', { userId: item.userId || 1, userName: item.ownerName })}
+                    onPress={() => {
+                        const targetUserId = item.userId || item.profile?.user_id;
+                        const targetUserName = item.ownerName || item.profile?.full_name || 'Foydalanuvchi';
+                        navigation.navigate('Chat', { userId: targetUserId, userName: targetUserName });
+                    }}
                 >
                     <MessageCircle color="#7c3aed" size={24} />
                 </TouchableOpacity>
@@ -250,7 +254,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
                     title="BOG'LANISH"
                     style={styles.callButton}
                     onPress={() => {
-                        const phoneNumber = item.phone || item.profile?.user?.phone;
+                        const phoneNumber = item.phone || item.profile?.user?.phone || item.profile?.phone;
                         if (phoneNumber) {
                             Linking.openURL(`tel:${phoneNumber}`);
                         } else {

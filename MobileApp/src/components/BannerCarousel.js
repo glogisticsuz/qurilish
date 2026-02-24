@@ -15,6 +15,22 @@ const BannerCarousel = () => {
             .catch(err => console.error('Banners fetch error:', err));
     }, []);
 
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (banners.length > 1) {
+                const nextIndex = (activeIndex + 1) % banners.length;
+                setActiveIndex(nextIndex);
+            }
+        }, 5000);
+        return () => clearInterval(interval);
+    }, [banners, activeIndex]);
+
+    const handleBannerClick = (banner) => {
+        if (banner.link_url) {
+            Linking.openURL(banner.link_url).catch(err => console.error('Link error:', err));
+        }
+    };
+
     if (banners.length === 0) return null;
 
     return (
@@ -28,9 +44,15 @@ const BannerCarousel = () => {
                     setActiveIndex(Math.round(x / width));
                 }}
                 scrollEventThrottle={16}
+                contentOffset={{ x: activeIndex * width, y: 0 }}
             >
                 {banners.map((banner, index) => (
-                    <TouchableOpacity key={banner.id} activeOpacity={0.9} style={styles.bannerWrapper}>
+                    <TouchableOpacity
+                        key={banner.id}
+                        activeOpacity={0.9}
+                        style={styles.bannerWrapper}
+                        onPress={() => handleBannerClick(banner)}
+                    >
                         <Image
                             source={{ uri: banner.image_url }}
                             style={styles.bannerImage}
