@@ -83,12 +83,14 @@ const Dashboard = () => {
 
         try {
             await profileApi.uploadPortfolio(formData);
+            alert("E'lon muvaffaqiyatli joylandi!");
             setNewItem({ title: '', price: '', price_type: 'soat', category_id: filteredCategories[0]?.id || 1, description: '' });
             setFile(null);
             fetchData();
             setActiveTab('ads');
         } catch (err) {
-            alert("Yuklashda xatolik yuz berdi");
+            console.error("Upload error:", err.response?.data || err.message);
+            alert(`Yuklashda xatolik: ${err.response?.data?.detail || "Katta ehtimol bilan rasm hajmi juda katta yoki internet uzildi"}`);
         } finally {
             setUploading(false);
         }

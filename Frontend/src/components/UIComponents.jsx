@@ -1,4 +1,7 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MessageSquare, Phone, Star, Send, ChevronRight, CheckCircle } from 'lucide-react';
+import { chatApi, reviewApi } from '../api/api';
 
 /* ============================================
    UZUM-STYLE UI COMPONENTS
@@ -253,14 +256,36 @@ export const AdDetailModal = ({ isOpen, onClose, item, onImageClick }) => {
                     </div>
 
                     <div className="space-y-6">
-                        <div>
-                            <div className="flex flex-wrap gap-2 mb-3">
-                                <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[11px] font-black uppercase tracking-wider">Aktiv elon</span>
-                                <span className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-[11px] font-black uppercase tracking-wider">{item.location}</span>
+                        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                            <div className="flex-1">
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                    <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[11px] font-black uppercase tracking-wider">Aktiv elon</span>
+                                    <span className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-[11px] font-black uppercase tracking-wider">{item.location}</span>
+                                </div>
+                                <h2 className="text-[24px] sm:text-[32px] font-black text-gray-900 leading-tight">
+                                    {item.title}
+                                </h2>
                             </div>
-                            <h2 className="text-[24px] sm:text-[32px] font-black text-gray-900 leading-tight">
-                                {item.title}
-                            </h2>
+                            <div className="flex flex-col gap-2 min-w-[200px]">
+                                <Button
+                                    onClick={() => (window.location.href = `tel:${item.phone || item.profile?.user?.phone}`)}
+                                    className="w-full h-14 rounded-2xl shadow-lg shadow-green-500/20"
+                                    variant="success"
+                                >
+                                    <Phone size={20} />
+                                    <span>BOG'LANISH</span>
+                                </Button>
+                                <Button
+                                    onClick={() => {
+                                        const targetUserId = item.userId || item.profile?.user_id || item.profile_id;
+                                        if (targetUserId) window.location.href = `/chat/${targetUserId}`;
+                                    }}
+                                    className="w-full h-14 rounded-2xl shadow-lg shadow-purple-500/20"
+                                >
+                                    <MessageSquare size={20} />
+                                    <span>XABAR YOZISH</span>
+                                </Button>
+                            </div>
                         </div>
 
                         <div className="bg-purple-50 p-6 rounded-[24px] border border-purple-100">
@@ -277,19 +302,151 @@ export const AdDetailModal = ({ isOpen, onClose, item, onImageClick }) => {
                             </p>
                         </div>
 
+                        {/* Owner Info */}
                         <div className="pt-6 border-t border-gray-100">
-                            <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-[24px]">
-                                <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-xl font-black text-purple-600 border border-gray-100 shadow-sm">
-                                    {item.profile?.full_name ? item.profile.full_name[0].toUpperCase() : '?'}
+                            <div className="flex items-center justify-between bg-gray-50 p-4 rounded-[24px]">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-xl font-black text-purple-600 border border-gray-100 shadow-sm overflow-hidden">
+                                        {item.profile?.avatar_url ? (
+                                            <img src={item.profile.avatar_url} className="w-full h-full object-cover" />
+                                        ) : (
+                                            item.profile?.full_name ? item.profile.full_name[0].toUpperCase() : '?'
+                                        )}
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">E'lon egasi</p>
+                                        <h4 className="text-[18px] font-black text-gray-900 italic">{item.profile?.full_name || 'Foydalanuvchi'}</h4>
+                                        <div className="flex items-center gap-1 mt-1">
+                                            {[...Array(5)].map((_, i) => (
+                                                <Star key={i} size={12} className={i < (item.profile?.rating || 0) ? "fill-amber-400 text-amber-400" : "text-gray-300"} />
+                                            ))}
+                                            <span className="text-[11px] font-bold text-gray-400 ml-1">({item.profile?.rating || 0})</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">E'lon egasi</p>
-                                    <h4 className="text-[18px] font-black text-gray-900 italic">{item.profile?.full_name || 'Foydalanuvchi'}</h4>
-                                </div>
+                                <button
+                                    onClick={() => (window.location.href = `/profile/${item.profile?.user_id}`)}
+                                    className="p-3 bg-white rounded-xl text-purple-600 hover:bg-purple-50 transition-colors"
+                                >
+                                    <ChevronRight size={20} />
+                                </button>
                             </div>
                         </div>
+
+                        {/* Reviews Section */}
+                        <ReviewsSection userId={item.userId || item.profile?.user_id || item.profile_id} />
                     </div>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+// Reviews Section Component
+const ReviewsSection = ({ userId }) => {
+    const [reviews, setReviews] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [newReview, setNewReview] = useState({ stars: 5, text: '' });
+    const [submitting, setSubmitting] = useState(false);
+    const [success, setSuccess] = useState(false);
+
+    useEffect(() => {
+        if (userId) fetchReviews();
+    }, [userId]);
+
+    const fetchReviews = async () => {
+        try {
+            const res = await reviewApi.getReviews(userId);
+            setReviews(res.data || []);
+        } catch (err) {
+            console.error("Reviews fetch error:", err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!localStorage.getItem('token')) return alert("Sharh qoldirish uchun tizimga kiring");
+        setSubmitting(true);
+        try {
+            await reviewApi.addReview(userId, newReview);
+            setSuccess(true);
+            setNewReview({ stars: 5, text: '' });
+            fetchReviews();
+            setTimeout(() => setSuccess(false), 3000);
+        } catch (err) {
+            alert(err.response?.data?.detail || "Xatolik yuz berdi");
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="pt-8 border-t border-gray-100">
+            <h3 className="text-[12px] font-black text-gray-400 uppercase tracking-[0.2em] mb-6">Mijozlar sharhlari ({reviews.length})</h3>
+
+            {/* Review Form */}
+            <form onSubmit={handleSubmit} className="mb-10 bg-gray-50 p-6 rounded-[28px] border border-gray-100">
+                <p className="text-[13px] font-black text-gray-900 uppercase tracking-tight mb-4 text-center">Ximat sifatini baholang</p>
+                <div className="flex justify-center gap-3 mb-6">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                            key={star}
+                            type="button"
+                            onClick={() => setNewReview({ ...newReview, stars: star })}
+                            className="transition-transform active:scale-90"
+                        >
+                            <Star
+                                size={32}
+                                className={star <= newReview.stars ? "fill-amber-400 text-amber-400" : "text-gray-300"}
+                            />
+                        </button>
+                    ))}
+                </div>
+                <textarea
+                    placeholder="O'z fikringizni qoldiring..."
+                    className="w-full p-4 bg-white border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-purple-500/20 outline-none resize-none mb-4"
+                    rows={3}
+                    value={newReview.text}
+                    onChange={(e) => setNewReview({ ...newReview, text: e.target.value })}
+                />
+                <Button
+                    type="submit"
+                    className="w-full h-12 rounded-xl"
+                    disabled={submitting || !newReview.text}
+                >
+                    {success ? <><CheckCircle size={18} /><span>YUBORILDI</span></> : (submitting ? 'YUBORILMOQDA...' : 'SHARH QOLDIRISH')}
+                </Button>
+            </form>
+
+            {/* Reviews List */}
+            <div className="space-y-6">
+                {loading ? (
+                    <div className="flex justify-center py-4"><Spinner sm /></div>
+                ) : reviews.length === 0 ? (
+                    <p className="text-center text-gray-400 py-4 text-sm font-medium uppercase tracking-widest">Hozircha sharhlar yo'q</p>
+                ) : (
+                    reviews.map((rev, i) => (
+                        <div key={i} className="flex gap-4 animate-in fade-in duration-500">
+                            <div className="w-10 h-10 rounded-xl bg-purple-50 flex-shrink-0 flex items-center justify-center text-purple-600 font-black text-sm">
+                                {rev.from_user?.phone?.[0] || 'U'}
+                            </div>
+                            <div className="flex-1">
+                                <div className="flex items-center justify-between mb-1">
+                                    <h4 className="text-sm font-black text-gray-900">{rev.from_user?.phone || 'Foydalanuvchi'}</h4>
+                                    <div className="flex gap-0.5">
+                                        {[...Array(5)].map((_, j) => (
+                                            <Star key={j} size={10} className={j < rev.stars ? "fill-amber-400 text-amber-400" : "text-gray-200"} />
+                                        ))}
+                                    </div>
+                                </div>
+                                <p className="text-gray-600 text-sm leading-relaxed">{rev.text}</p>
+                                <p className="text-[10px] text-gray-400 font-bold uppercase mt-2">{new Date(rev.created_at).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                    ))
+                )}
             </div>
         </div>
     );
