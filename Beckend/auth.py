@@ -22,14 +22,15 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24 * 7 # 1 week
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
+import re
+
 def normalize_phone(phone: str) -> str:
-    """Ensures phone number always starts with '+'."""
+    """Ensures phone number is digits only and starts with '+'."""
     if not phone:
         return phone
-    phone = phone.strip()
-    if not phone.startswith("+"):
-        phone = "+" + phone
-    return phone
+    # Remove all non-digit characters
+    digits = re.sub(r'\D', '', phone)
+    return "+" + digits
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")

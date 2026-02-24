@@ -69,6 +69,7 @@ async def login(request: schemas.LoginRequest, db: Session = Depends(get_db)):
 
 @app.post("/auth/verify", response_model=schemas.Token)
 async def verify(request: schemas.OTPVerify, db: Session = Depends(get_db)):
+    logger.info(f"Verify request received for phone: {request.phone}, code: {request.otp_code}")
     request.phone = auth.normalize_phone(request.phone)
     user = db.query(models.User).filter(models.User.phone == request.phone).first()
     
