@@ -23,11 +23,13 @@ from auth import normalize_phone
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Sends a message with a button to share contact and additional options."""
+    logging.info(f"OTP Bot: Received /start from {update.effective_user.id}")
     contact_button = KeyboardButton(text="Raqamni ulash 📱", request_contact=True)
     
     keyboard = ReplyKeyboardMarkup(
         [[contact_button]], 
-        resize_keyboard=True
+        resize_keyboard=True,
+        one_time_keyboard=False
     )
     
     await update.message.reply_text(
@@ -36,12 +38,14 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles text buttons (disabled in this version)."""
+    """Handles text buttons."""
+    logging.info(f"OTP Bot: Received text '{update.message.text}' from {update.effective_user.id}")
     pass
 
 async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the shared contact and updates the database."""
     contact = update.message.contact
+    logging.info(f"OTP Bot: Received contact for phone {contact.phone_number} from {update.effective_user.id}")
     phone = normalize_phone(contact.phone_number)
     telegram_id = contact.user_id
 

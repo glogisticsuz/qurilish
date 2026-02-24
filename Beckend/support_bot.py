@@ -28,6 +28,7 @@ user_data = {}
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     chat_id = message.chat.id
+    logging.info(f"Support Bot: Received /start from {chat_id}")
     user_data.pop(chat_id, None)
     
     bot.send_message(
