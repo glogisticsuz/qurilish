@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, ScrollView, Image, Dimensions, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, ScrollView, Image, Dimensions, StyleSheet, Text, TouchableOpacity, Linking } from 'react-native';
 import axios from 'axios';
 import { API_URL } from '../api/config';
 
@@ -8,25 +8,28 @@ const { width } = Dimensions.get('window');
 const BannerCarousel = () => {
     const [banners, setBanners] = useState([]);
     const [activeIndex, setActiveIndex] = useState(0);
+    const scrollRef = useRef();
 
     useEffect(() => {
-        axios.get(`${API_URL}/ads/banners`)
+        axios.get(`${API_URL}/api/ads/banners`) // Added /api prefix
             .then(res => setBanners(res.data || []))
             .catch(err => console.error('Banners fetch error:', err));
     }, []);
 
     useEffect(() => {
+        if (banners.length <= 1) return;
+
         const interval = setInterval(() => {
-            if (banners.length > 1) {
-                const nextIndex = (activeIndex + 1) % banners.length;
-                setActiveIndex(nextIndex);
-            }
+            const nextIndex = (activeIndex + 1) % banners.length;
+            setActiveIndex(nextIndex);
+            scrollRef.current?.scrollTo({ x: nextIndex * width, animated: true });
         }, 5000);
         return () => clearInterval(interval);
     }, [banners, activeIndex]);
 
     const handleBannerClick = (banner) => {
         if (banner.link_url) {
+            axios.post(`${API_URL}/api/ads/${banner.id}/click`); // Track click
             Linking.openURL(banner.link_url).catch(err => console.error('Link error:', err));
         }
     };
@@ -36,15 +39,15 @@ const BannerCarousel = () => {
     return (
         <View style={styles.container}>
             <ScrollView
-                horizontal={Boolean(true)}
-                pagingEnabled={Boolean(true)}
-                showsHorizontalScrollIndicator={Boolean(false)}
-                onScroll={(e) => {
+                ref={scrollRef}
+                horizontal={true}
+                pagingEnabled={true}
+                showsHorizontalScrollIndicator={false}
+                onMomentumScrollEnd={(e) => {
                     const x = e.nativeEvent.contentOffset.x;
                     setActiveIndex(Math.round(x / width));
                 }}
                 scrollEventThrottle={16}
-                contentOffset={{ x: activeIndex * width, y: 0 }}
             >
                 {banners.map((banner, index) => (
                     <TouchableOpacity

@@ -32,44 +32,44 @@ api.interceptors.response.use(
 );
 
 export const authApi = {
-    login: (phone, role) => api.post('/auth/login', { phone, role }),
-    verify: (phone, otp_code) => api.post('/auth/verify', { phone, otp_code }),
-    getMe: () => api.get('/users/me'),
-    updateRole: (role) => api.put('/users/role', { role }),
+    login: (phone, role) => api.post('/api/auth/login', { phone, role }),
+    verify: (phone, otp_code) => api.post('/api/auth/verify', { phone, otp_code }),
+    getMe: () => api.get('/api/users/me'),
+    updateRole: (role) => api.put('/api/users/role', { role }),
 };
 
 export const profileApi = {
-    getMe: () => api.get('/profiles/me'),
-    updateMe: (data) => api.put('/profiles/me', data),
-    uploadAvatar: (formData) => api.post('/profiles/me/avatar', formData, {
+    getMe: () => api.get('/api/profiles/me'),
+    updateMe: (data) => api.put('/api/profiles/me', data),
+    uploadAvatar: (formData) => api.post('/api/profiles/me/avatar', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
-    getPublicProfile: (userId) => api.get(`/profiles/${userId}`),
-    getUserPortfolio: (userId) => api.get(`/profiles/${userId}/portfolio`),
-    getMyPortfolio: () => api.get('/profiles/me/portfolio'),
-    uploadPortfolio: (formData) => api.post('/api/profile/portfolio', formData, {
+    getPublicProfile: (userId) => api.get(`/api/profiles/${userId}`),
+    getUserPortfolio: (userId) => api.get(`/api/profiles/${userId}/portfolio`),
+    getMyPortfolio: () => api.get('/api/profiles/me/portfolio'),
+    uploadPortfolio: (formData) => api.post('/api/api/profile/portfolio', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
-    getAllItems: (category_id) => api.get('/api/items', { params: { category_id } }),
-    deletePortfolio: (itemId) => api.delete(`/api/items/${itemId}`),
-    updatePortfolio: (itemId, formData) => api.put(`/api/items/${itemId}`, formData, {
+    getAllItems: (category_id) => api.get('/api/api/items', { params: { category_id } }),
+    deletePortfolio: (itemId) => api.delete(`/api/api/items/${itemId}`),
+    updatePortfolio: (itemId, formData) => api.put(`/api/api/items/${itemId}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
 };
 
 export const chatApi = {
-    getChats: () => api.get('/messages/chats'),
-    getHistory: (userId) => api.get(`/messages/${userId}`),
-    markAsRead: (userId) => api.post(`/messages/${userId}/read`),
-    sendMessage: (data) => api.post('/messages/send', data),
-    sendImage: (formData) => api.post('/messages/send-image', formData, {
+    getChats: () => api.get('/api/messages/chats'),
+    getHistory: (userId) => api.get(`/api/messages/${userId}`),
+    markAsRead: (userId) => api.post(`/api/messages/${userId}/read`),
+    sendMessage: (data) => api.post('/api/messages/send', data),
+    sendImage: (formData) => api.post('/api/messages/send-image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
 };
 
 export const reviewApi = {
-    getReviews: (userId) => api.get(`/reviews/${userId}`),
-    addReview: (userId, data) => api.post(`/reviews/${userId}`, data),
+    getReviews: (userId) => api.get(`/api/reviews/${userId}`),
+    addReview: (userId, data) => api.post(`/api/reviews/${userId}`, data),
 };
 
 export default api;

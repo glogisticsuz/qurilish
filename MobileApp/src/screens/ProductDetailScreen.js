@@ -180,7 +180,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
                     </View>
 
                     {/* Add Review Form */}
-                    {currentUser?.id !== (item.userId || item.profile?.user_id) && (
+                    {(!currentUser || currentUser.id !== (item.userId || item.profile?.user_id || item.profile_id)) && (
                         <View style={styles.addReviewBox}>
                             <Text style={styles.addReviewTitle}>SHARH QOLDIRISH</Text>
                             <View style={styles.starRow}>
@@ -243,7 +243,7 @@ const ProductDetailScreen = ({ route, navigation }) => {
                 <TouchableOpacity
                     style={styles.chatButton}
                     onPress={() => {
-                        const targetUserId = item.userId || item.profile?.user_id;
+                        const targetUserId = item.userId || item.profile?.user_id || item.profile_id;
                         const targetUserName = item.ownerName || item.profile?.full_name || 'Foydalanuvchi';
                         navigation.navigate('Chat', { userId: targetUserId, userName: targetUserName });
                     }}
