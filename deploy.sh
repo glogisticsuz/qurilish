@@ -8,7 +8,7 @@ git pull origin master
 
 # Build and restart containers
 echo "Building and restarting containers..."
-docker-compose up -d --build
+docker compose up -d --build
 
 # Clean up unused images
 echo "Cleaning up old images..."
