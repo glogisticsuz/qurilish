@@ -129,7 +129,7 @@ export const ThemeToggle = ({ theme, toggleTheme }) => {
 };
 
 // Product Card (iOS-style)
-export const ProductCard = ({ image, title, price, location, ownerName, isVerified, onClick }) => {
+export const ProductCard = ({ image, title, price, location, ownerName, isVerified, onClick, onImageClick, onProfileClick }) => {
     return (
         <div
             onClick={onClick}
@@ -139,6 +139,12 @@ export const ProductCard = ({ image, title, price, location, ownerName, isVerifi
                 <img
                     src={image}
                     alt={title}
+                    onClick={(e) => {
+                        if (onImageClick) {
+                            e.stopPropagation();
+                            onImageClick();
+                        }
+                    }}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 {isVerified && (
@@ -155,11 +161,19 @@ export const ProductCard = ({ image, title, price, location, ownerName, isVerifi
                     {title}
                 </h3>
                 <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-50">
-                    <div className="flex items-center gap-2">
-                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-purple-600">
+                    <div
+                        className="flex items-center gap-2 group/profile cursor-pointer"
+                        onClick={(e) => {
+                            if (onProfileClick) {
+                                e.stopPropagation();
+                                onProfileClick();
+                            }
+                        }}
+                    >
+                        <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-purple-600 group-hover/profile:bg-purple-100 transition-colors">
                             {ownerName ? ownerName[0].toUpperCase() : '?'}
                         </div>
-                        <span className="text-[12px] font-medium text-gray-600 truncate max-w-[80px]">
+                        <span className="text-[12px] font-medium text-gray-600 truncate max-w-[80px] group-hover/profile:text-purple-600 transition-colors">
                             {ownerName || 'Foydalanuvchi'}
                         </span>
                     </div>
@@ -169,6 +183,111 @@ export const ProductCard = ({ image, title, price, location, ownerName, isVerifi
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <span className="text-[11px] font-medium">{location || 'O\'zbekiston'}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// Fullscreen Image Modal
+export const FullscreenImageModal = ({ isOpen, onClose, image }) => {
+    if (!isOpen) return null;
+    return (
+        <div
+            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300"
+            onClick={onClose}
+        >
+            <button className="absolute top-6 right-6 text-white/70 hover:text-white p-2 bg-white/10 rounded-full transition-all">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <img
+                src={image}
+                alt="Fullscreen"
+                className="max-w-full max-h-full object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-300"
+                onClick={(e) => e.stopPropagation()}
+            />
+        </div>
+    );
+};
+
+// Ad Detail Modal
+export const AdDetailModal = ({ isOpen, onClose, item, onImageClick }) => {
+    if (!isOpen) return null;
+
+    // Support for multiple images from item data
+    const images = [item.image_url1, item.image_url2, item.image_url3, item.image_url4, item.image_url5].filter(Boolean);
+
+    return (
+        <div className="fixed inset-0 z-[101] flex items-end justify-center sm:items-center p-0 sm:p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-300">
+            <div
+                className="absolute inset-0"
+                onClick={onClose}
+            ></div>
+            <div className="relative bg-white w-full max-w-2xl rounded-t-[32px] sm:rounded-[32px] shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar animate-in slide-in-from-bottom-8 duration-300">
+                <div className="sticky top-0 z-10 flex justify-end p-4 pointer-events-none">
+                    <button
+                        onClick={onClose}
+                        className="pointer-events-auto w-10 h-10 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center shadow-lg hover:bg-white transition-all"
+                    >
+                        <svg className="w-6 h-6 text-gray-900" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div className="p-6 pt-0 sm:p-8 sm:pt-4">
+                    {/* Image Gallery */}
+                    <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-6 -mx-2 px-2">
+                        {images.map((img, i) => (
+                            <div
+                                key={i}
+                                onClick={() => onImageClick(img)}
+                                className="flex-shrink-0 w-64 h-64 sm:w-80 sm:h-80 bg-gray-50 rounded-[24px] overflow-hidden cursor-pointer hover:ring-4 hover:ring-purple-500/20 transition-all border border-gray-100"
+                            >
+                                <img src={img} alt={`${item.title} ${i + 1}`} className="w-full h-full object-cover" />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="space-y-6">
+                        <div>
+                            <div className="flex flex-wrap gap-2 mb-3">
+                                <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[11px] font-black uppercase tracking-wider">Aktiv elon</span>
+                                <span className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-[11px] font-black uppercase tracking-wider">{item.location}</span>
+                            </div>
+                            <h2 className="text-[24px] sm:text-[32px] font-black text-gray-900 leading-tight">
+                                {item.title}
+                            </h2>
+                        </div>
+
+                        <div className="bg-purple-50 p-6 rounded-[24px] border border-purple-100">
+                            <p className="text-purple-600 font-black text-[28px]">
+                                {item.price ? `${item.price.toLocaleString()} so'm` : 'Kelishilgan'}
+                                <span className="text-purple-400 text-sm font-black ml-2 uppercase">/ {item.price_type}</span>
+                            </p>
+                        </div>
+
+                        <div>
+                            <h3 className="text-[12px] font-black text-gray-400 uppercase tracking-[0.2em] mb-3">Ba'tafsil malumot</h3>
+                            <p className="text-gray-700 text-[17px] leading-relaxed font-medium whitespace-pre-wrap">
+                                {item.description || "Hozircha tavsif kiritilmagan."}
+                            </p>
+                        </div>
+
+                        <div className="pt-6 border-t border-gray-100">
+                            <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-[24px]">
+                                <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center text-xl font-black text-purple-600 border border-gray-100 shadow-sm">
+                                    {item.profile?.full_name ? item.profile.full_name[0].toUpperCase() : '?'}
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">E'lon egasi</p>
+                                    <h4 className="text-[18px] font-black text-gray-900 italic">{item.profile?.full_name || 'Foydalanuvchi'}</h4>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

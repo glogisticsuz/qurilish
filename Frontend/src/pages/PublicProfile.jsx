@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { profileApi, reviewApi, authApi } from '../api/api';
-import { Button, Input, Spinner, ProductCard } from '../components/UIComponents';
+import { Button, Input, Spinner, ProductCard, AdDetailModal, FullscreenImageModal } from '../components/UIComponents';
 import {
     ChevronLeft,
     MapPin,
@@ -25,6 +25,8 @@ const PublicProfile = () => {
     const [newReview, setNewReview] = useState({ stars: 5, text: '' });
     const [submitting, setSubmitting] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(null);
 
     useEffect(() => {
         fetchPublicData();
@@ -186,7 +188,9 @@ const PublicProfile = () => {
                                 location={item.location || profile?.region}
                                 ownerName={profile?.full_name}
                                 isVerified={profile?.is_verified}
-                                onClick={() => { }} // Already on profile
+                                onClick={() => setSelectedItem(item)}
+                                onImageClick={() => setSelectedImage(item.image_url1)}
+                                onProfileClick={() => { }} // Already on this profile
                             />
                         ))}
                     </div>
@@ -251,6 +255,22 @@ const PublicProfile = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Modals */}
+            {selectedItem && (
+                <AdDetailModal
+                    isOpen={!!selectedItem}
+                    onClose={() => setSelectedItem(null)}
+                    item={{ ...selectedItem, profile: profile }} // Inject profile data for the modal
+                    onImageClick={(img) => setSelectedImage(img)}
+                />
+            )}
+
+            <FullscreenImageModal
+                isOpen={!!selectedImage}
+                onClose={() => setSelectedImage(null)}
+                image={selectedImage}
+            />
         </div>
     );
 };

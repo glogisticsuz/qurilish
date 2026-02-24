@@ -32,7 +32,7 @@ const Dashboard = () => {
     const [uploading, setUploading] = useState(false);
     const [activeTab, setActiveTab] = useState('ads'); // 'ads' or 'upload'
 
-    const [newItem, setNewItem] = useState({ title: '', price: '', price_type: 'soat', category_id: 1 });
+    const [newItem, setNewItem] = useState({ title: '', price: '', price_type: 'soat', category_id: 1, description: '' });
     const [file, setFile] = useState(null);
     const fileInputRef = useRef();
 
@@ -74,15 +74,16 @@ const Dashboard = () => {
 
         setUploading(true);
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('files', file); // Change 'file' to 'files' to match backend expectation
         formData.append('title', newItem.title);
         formData.append('price', newItem.price || 0);
         formData.append('price_type', newItem.price_type);
         formData.append('category_id', newItem.category_id || (filteredCategories[0]?.id || 5));
+        formData.append('description', newItem.description || "");
 
         try {
             await profileApi.uploadPortfolio(formData);
-            setNewItem({ title: '', price: '', price_type: 'soat', category_id: filteredCategories[0]?.id || 1 });
+            setNewItem({ title: '', price: '', price_type: 'soat', category_id: filteredCategories[0]?.id || 1, description: '' });
             setFile(null);
             fetchData();
             setActiveTab('ads');
@@ -239,6 +240,23 @@ const Dashboard = () => {
                                             ))}
                                         </select>
                                         <ChevronDown size={18} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none" />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-[11px] font-black text-gray-900 uppercase ml-1 opacity-70">Batafsil ma'lumot (Tavsif)</label>
+                                    <textarea
+                                        placeholder="Xizmat yoki mahsulot haqida batafsil ma'lumot kiriting (maksimum 1000 belgi)..."
+                                        value={newItem.description}
+                                        onChange={e => setNewItem({ ...newItem, description: e.target.value })}
+                                        maxLength={1000}
+                                        rows={4}
+                                        className="w-full px-4 py-4 bg-white border border-white rounded-2xl text-[15px] font-medium focus:outline-none focus:ring-2 focus:ring-[#7c3aed]/10 transition-all resize-none"
+                                    />
+                                    <div className="flex justify-end pr-2">
+                                        <span className={`text-[10px] font-black uppercase tracking-tighter ${newItem.description.length > 900 ? 'text-orange-500' : 'text-gray-300'}`}>
+                                            {newItem.description.length} / 1000
+                                        </span>
                                     </div>
                                 </div>
                             </div>

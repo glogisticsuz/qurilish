@@ -12,4 +12,5 @@ pydantic-settings==2.7.1
 pyTelegramBotAPI==4.30.0
 pillow==11.0.0
 gunicorn==23.0.0
-imagekitio==1.0.1
+imagekitio==5.2.0
+python-telegram-bot==21.10

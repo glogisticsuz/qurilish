@@ -17,7 +17,7 @@ import {
     ChevronDown,
     CheckCircle
 } from 'lucide-react';
-import { Button, ProductCard, Spinner } from '../components/UIComponents';
+import { Button, ProductCard, Spinner, AdDetailModal, FullscreenImageModal } from '../components/UIComponents';
 import SplashAd from '../components/SplashAd';
 import BannerCarousel from '../components/BannerCarousel';
 import InlineAd from '../components/InlineAd';
@@ -37,6 +37,8 @@ const Home = () => {
     const [isDistrictModalOpen, setIsDistrictModalOpen] = useState(false);
     const [selectedRegion, setSelectedRegion] = useState(regions[0]);
     const [selectedDistrict, setSelectedDistrict] = useState(null);
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [selectedImage, setSelectedImage] = useState(null);
     const navigate = useNavigate();
     const { t, lang } = useTranslation();
 
@@ -241,7 +243,9 @@ const Home = () => {
                                     location={item.data.location || item.data.profile?.region}
                                     ownerName={item.data.profile?.full_name}
                                     isVerified={item.data.profile?.is_verified}
-                                    onClick={() => navigate(`/profile/${item.data.profile?.user_id}`)}
+                                    onClick={() => setSelectedItem(item.data)}
+                                    onImageClick={() => setSelectedImage(item.data.image_url1)}
+                                    onProfileClick={() => navigate(`/profile/${item.data.profile?.user_id}`)}
                                 />
                             ) : (
                                 <InlineAd key={`ad-${index}`} ad={item.data} />
@@ -253,7 +257,7 @@ const Home = () => {
 
             {/* Floating Support Button */}
             <a
-                href="https://t.me/Megastroy_support_user_bot"
+                href="https://t.me/Hamkor_support_bot"
                 target="_blank"
                 rel="noreferrer"
                 className="fixed bottom-24 right-6 w-14 h-14 bg-[#7c3aed] text-white rounded-full flex items-center justify-center shadow-2xl shadow-purple-500/50 hover:scale-110 transition-transform z-40"
@@ -396,6 +400,22 @@ const Home = () => {
                     </div>
                 </div>
             )}
+
+            {/* Modals */}
+            {selectedItem && (
+                <AdDetailModal
+                    isOpen={!!selectedItem}
+                    onClose={() => setSelectedItem(null)}
+                    item={selectedItem}
+                    onImageClick={(img) => setSelectedImage(img)}
+                />
+            )}
+
+            <FullscreenImageModal
+                isOpen={!!selectedImage}
+                onClose={() => setSelectedImage(null)}
+                image={selectedImage}
+            />
         </div>
     );
 };

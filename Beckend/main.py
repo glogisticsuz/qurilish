@@ -27,7 +27,12 @@ app = FastAPI(title="HamkorQurilish API")
 # CORS configuration - Tighten this in production!
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allow all origins for development
+    allow_origins=[
+        "https://hamkorqurilish.uz",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "*"
+    ],
 
     allow_credentials=True,
     allow_methods=["*"],

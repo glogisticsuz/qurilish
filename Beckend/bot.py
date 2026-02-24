@@ -24,38 +24,20 @@ from auth import normalize_phone
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Sends a message with a button to share contact and additional options."""
     contact_button = KeyboardButton(text="Raqamni ulash 📱", request_contact=True)
-    reklama_button = KeyboardButton(text="Reklama berish 📢")
-    admin_button = KeyboardButton(text="Adminga murojaat 👨‍💻")
     
     keyboard = ReplyKeyboardMarkup(
-        [[contact_button], [reklama_button, admin_button]], 
+        [[contact_button]], 
         resize_keyboard=True
     )
     
     await update.message.reply_text(
-        "Xush kelibsiz! HamkorQurilish platformasi rasmiy botiga xush kelibsiz. \n\nRaqamingizni tasdiqlash uchun 'Raqamni ulash' tugmasini bosing yoki quyidagi bo'limlardan birini tanlang.",
+        "Xush kelibsiz! HamkorQurilish platformasi rasmiy botiga xush kelibsiz. \n\nRaqamingizni tasdiqlash uchun 'Raqamni ulash' tugmasini bosing.",
         reply_markup=keyboard
     )
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles text buttons."""
-    text = update.message.text
-    
-    if text == "Reklama berish 📢":
-        await update.message.reply_text(
-            "📢 Reklama xizmati bo'yicha ma'lumot:\n\n"
-            "Siz platformamizda splash, banner yoki inline turdagi reklamalarni joylashtirishingiz mumkin.\n\n"
-            "Batafsil ma'lumot va narxlar uchun admin bilan bog'laning:\n"
-            "📞 Tel: +998 90 123 45 67\n"
-            "👤 Admin: @HamkorQurilish_Admin"
-        )
-    elif text == "Adminga murojaat 👨‍💻":
-        await update.message.reply_text(
-            "👨‍💻 Savol va takliflaringiz bo'lsa admin bilan bog'laning:\n\n"
-            "👤 Admin: @HamkorQurilish_Admin\n"
-            "⏰ Ish vaqti: 09:00 - 18:00\n\n"
-            "Iltimos, murojaatingizni yozib qoldiring, admin tez orada javob beradi."
-        )
+    """Handles text buttons (disabled in this version)."""
+    pass
 
 async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the shared contact and updates the database."""
