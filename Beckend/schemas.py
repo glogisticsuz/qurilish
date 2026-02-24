@@ -61,6 +61,7 @@ class PortfolioItemBase(BaseModel):
     item_type: Optional[str] = "service"
     phone: Optional[str] = None
     category_id: Optional[int] = None
+    views_count: int = 0
 
 class PortfolioItemCreate(PortfolioItemBase):
     profile_id: int

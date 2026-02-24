@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MessageSquare, Phone, Star, Send, ChevronRight, CheckCircle } from 'lucide-react';
-import { chatApi, reviewApi } from '../api/api';
+import { MessageSquare, Phone, Star, Send, ChevronRight, CheckCircle, Eye } from 'lucide-react';
+import { chatApi, reviewApi, profileApi } from '../api/api';
 
 /* ============================================
    UZUM-STYLE UI COMPONENTS
@@ -218,7 +218,17 @@ export const FullscreenImageModal = ({ isOpen, onClose, image }) => {
 
 // Ad Detail Modal
 export const AdDetailModal = ({ isOpen, onClose, item, onImageClick }) => {
-    if (!isOpen) return null;
+    const [viewIncremented, setViewIncremented] = React.useState(false);
+
+    React.useEffect(() => {
+        if (isOpen && item?.id && !viewIncremented) {
+            fetch(`${import.meta.env.VITE_API_URL || 'https://hamkorqurilish.uz'}/api/items/${item.id}/view`, { method: 'POST' })
+                .then(() => setViewIncremented(true))
+                .catch(err => console.error("View increment error:", err));
+        }
+    }, [isOpen, item?.id]);
+
+    if (!isOpen || !item) return null;
 
     // Support for multiple images from item data
     const images = [item.image_url1, item.image_url2, item.image_url3, item.image_url4, item.image_url5].filter(Boolean);
@@ -261,6 +271,10 @@ export const AdDetailModal = ({ isOpen, onClose, item, onImageClick }) => {
                                 <div className="flex flex-wrap gap-2 mb-3">
                                     <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-[11px] font-black uppercase tracking-wider">Aktiv elon</span>
                                     <span className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-[11px] font-black uppercase tracking-wider">{item.location}</span>
+                                    <div className="px-3 py-1 bg-gray-50 text-gray-500 rounded-full text-[11px] font-black uppercase tracking-wider flex items-center gap-1.5">
+                                        <Eye size={12} className="text-gray-400" />
+                                        <span>{item.views_count || 0} marta ko'rildi</span>
+                                    </div>
                                 </div>
                                 <h2 className="text-[24px] sm:text-[32px] font-black text-gray-900 leading-tight">
                                     {item.title}
@@ -317,10 +331,14 @@ export const AdDetailModal = ({ isOpen, onClose, item, onImageClick }) => {
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none mb-1">E'lon egasi</p>
                                         <h4 className="text-[18px] font-black text-gray-900 italic">{item.profile?.full_name || 'Foydalanuvchi'}</h4>
                                         <div className="flex items-center gap-1 mt-1">
-                                            {[...Array(5)].map((_, i) => (
-                                                <Star key={i} size={12} className={i < (item.profile?.rating || 0) ? "fill-amber-400 text-amber-400" : "text-gray-300"} />
-                                            ))}
-                                            <span className="text-[11px] font-bold text-gray-400 ml-1">({item.profile?.rating || 0})</span>
+                                            <div className="flex items-center gap-1">
+                                                <Star size={12} className="fill-amber-400 text-amber-400" />
+                                                <span className="text-[11px] font-black text-gray-900">{item.profile?.rating || '0'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-1 bg-gray-50 px-2 py-0.5 rounded-md">
+                                                <Eye size={12} className="text-gray-400" />
+                                                <span className="text-[11px] font-black text-gray-400">{item.views_count || 0}</span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>

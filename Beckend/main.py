@@ -286,6 +286,15 @@ async def get_all_items(
         query = query.filter(models.PortfolioItem.item_type == item_type)
     return query.order_by(models.PortfolioItem.id.desc()).all()
 
+@app.post("/api/items/{item_id}/view")
+async def increment_item_view(item_id: int, db: Session = Depends(database.get_db)):
+    item = db.query(models.PortfolioItem).filter(models.PortfolioItem.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Element topilmadi")
+    item.views_count = (item.views_count or 0) + 1
+    db.commit()
+    return {"views_count": item.views_count}
+
 @app.delete("/api/items/{item_id}")
 async def delete_portfolio_item(item_id: int, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     item = db.query(models.PortfolioItem).join(models.Profile).filter(

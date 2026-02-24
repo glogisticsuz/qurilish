@@ -1,6 +1,6 @@
 import React from 'react';
 import { TouchableOpacity, Text, StyleSheet, View, Image, Dimensions } from 'react-native';
-import { Star, ShieldCheck } from 'lucide-react-native';
+import { Star, ShieldCheck, Eye } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -15,7 +15,7 @@ export const Button = ({ title, onPress, variant = 'primary', style }) => (
     </TouchableOpacity>
 );
 
-export const ProductCard = ({ title, price, location, image, ownerName, isVerified, description, onClick }) => (
+export const ProductCard = ({ title, price, location, image, ownerName, isVerified, description, viewsCount, onClick }) => (
     <TouchableOpacity style={styles.card} onPress={onClick}>
         <Image source={{ uri: image }} style={styles.cardImage} />
         <View style={styles.cardContent}>
@@ -28,6 +28,10 @@ export const ProductCard = ({ title, price, location, image, ownerName, isVerifi
             ) : null}
             <View style={styles.cardFooter}>
                 <Text style={styles.cardLocation}>{location}</Text>
+                <View style={styles.viewRow}>
+                    <Eye color="#9ca3af" size={12} />
+                    <Text style={styles.viewText}>{viewsCount || 0}</Text>
+                </View>
             </View>
             <View style={styles.ownerRow}>
                 <Text style={styles.ownerName}>{ownerName}</Text>
@@ -125,5 +129,15 @@ const styles = StyleSheet.create({
         color: '#4b5563',
         marginRight: 4,
         fontWeight: '600',
+    },
+    viewRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    viewText: {
+        fontSize: 10,
+        color: '#9ca3af',
+        fontWeight: 'bold',
     }
 });

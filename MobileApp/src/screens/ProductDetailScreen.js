@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions, Share, Modal, FlatList, Linking, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, MapPin, MessageCircle, Share2, ShieldCheck, Heart, Star, X, Calendar } from 'lucide-react-native';
+import { ChevronLeft, MapPin, MessageCircle, Share2, ShieldCheck, Heart, Star, X, Calendar, Eye } from 'lucide-react-native';
 import { Button, Input, Spinner } from '../components/UIComponents';
 import api, { reviewApi, authApi } from '../api/api';
 
@@ -19,7 +19,16 @@ const ProductDetailScreen = ({ route, navigation }) => {
     React.useEffect(() => {
         fetchReviews();
         checkUser();
+        incrementView();
     }, []);
+
+    const incrementView = async () => {
+        try {
+            await api.post(`/api/items/${item.id}/view`);
+        } catch (e) {
+            console.error('Increment view error:', e);
+        }
+    };
 
     const fetchReviews = async () => {
         try {
@@ -120,8 +129,14 @@ const ProductDetailScreen = ({ route, navigation }) => {
                 <View style={styles.content}>
                     <View style={styles.priceRow}>
                         <Text style={styles.price}>{item.price}</Text>
-                        <View style={styles.badge}>
-                            <Text style={styles.badgeText}>YANGI</Text>
+                        <View style={{ flexDirection: 'row', gap: 8 }}>
+                            <View style={styles.viewBadge}>
+                                <Eye color="#9ca3af" size={12} />
+                                <Text style={styles.badgeText}>{item.views_count || 0}</Text>
+                            </View>
+                            <View style={styles.badge}>
+                                <Text style={styles.badgeText}>YANGI</Text>
+                            </View>
                         </View>
                     </View>
 
@@ -355,6 +370,15 @@ const styles = StyleSheet.create({
         fontSize: 10,
         fontWeight: '900',
         color: '#6b7280',
+    },
+    viewBadge: {
+        backgroundColor: '#f3f4f6',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 10,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
     },
     title: {
         fontSize: 24,

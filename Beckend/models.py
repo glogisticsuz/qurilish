@@ -72,6 +72,7 @@ class PortfolioItem(Base):
     item_type = Column(String, default="service") # service or job_request
     category_id = Column(Integer, nullable=True)
     phone = Column(String, nullable=True)
+    views_count = Column(Integer, default=0)
     
     profile = relationship("Profile", back_populates="items")
 

@@ -275,6 +275,7 @@ const HomeScreen = ({ navigation, route }) => {
                             ownerName={item.profile?.full_name || 'Foydalanuvchi'}
                             isVerified={Boolean(item.profile?.is_verified)}
                             description={item.description}
+                            viewsCount={item.views_count}
                             onClick={() => navigation.navigate('ProductDetail', {
                                 item: {
                                     ...item,
@@ -286,7 +287,8 @@ const HomeScreen = ({ navigation, route }) => {
                                     userId: item.profile?.user_id,
                                     description: item.description,
                                     phone: item.phone,
-                                    profile: item.profile
+                                    profile: item.profile,
+                                    views_count: item.views_count
                                 }
                             })}
                         />

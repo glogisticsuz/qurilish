@@ -19,15 +19,21 @@ imagekit = AsyncImageKit(
 def compress_image(file_content, quality=75):
     """
     Compresses image to JPEG with specified quality.
+    Enhanced to handle very large images by reducing quality further if needed.
     """
     try:
+        # Check initial size
+        size_mb = len(file_content) / (1024 * 1024)
+        if size_mb > 5:
+            quality = 60 # Aggressive compression for very large files
+        
         img = Image.open(io.BytesIO(file_content))
         if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
         
-        # Max dimensions 3000px
-        if img.width > 3000 or img.height > 3000:
-            img.thumbnail((3000, 3000), Image.Resampling.LANCZOS)
+        # Max dimensions 2000px for better efficiency
+        if img.width > 2000 or img.height > 2000:
+            img.thumbnail((2000, 2000), Image.Resampling.LANCZOS)
             
         output = io.BytesIO()
         img.save(output, format="JPEG", quality=quality, optimize=True)
