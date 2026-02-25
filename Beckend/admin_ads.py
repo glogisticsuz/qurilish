@@ -16,7 +16,7 @@ ADMIN_USERNAME = os.getenv("ADMIN_USERNAME")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
 
 def check_admin(user: models.User = Depends(auth.get_current_user)):
-    if user.role != models.UserRole.ADMIN:
+    if user.role != models.UserRole.admin:
         raise HTTPException(status_code=403, detail="Ruxsat berilmagan")
     return user
 
