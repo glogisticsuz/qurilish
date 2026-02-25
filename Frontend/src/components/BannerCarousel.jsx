@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import api from '../api/api';
 
 const BannerCarousel = () => {
     const [ads, setAds] = useState([]);
@@ -7,18 +8,16 @@ const BannerCarousel = () => {
     const [touchStart, setTouchStart] = useState(null);
     const [touchEnd, setTouchEnd] = useState(null);
 
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
     // Min swipe distance in pixels
     const minSwipeDistance = 50;
 
     useEffect(() => {
-        fetch(`${API_URL}/api/ads/banners`)
-            .then(res => res.json())
-            .then(data => {
+        api.get('/api/ads/banners')
+            .then(res => {
+                const data = res.data;
                 setAds(data || []);
                 if (data && data.length > 0) {
-                    fetch(`${API_URL}/api/ads/${data[0].id}/view`, { method: 'POST' });
+                    api.post(`/api/ads/${data[0].id}/view`).catch(() => { });
                 }
             })
             .catch(err => console.error('Banner fetch error:', err));
@@ -30,7 +29,7 @@ const BannerCarousel = () => {
         const interval = setInterval(() => {
             const nextIndex = (currentIndex + 1) % ads.length;
             setCurrentIndex(nextIndex);
-            fetch(`${API_URL}/api/ads/${ads[nextIndex].id}/view`, { method: 'POST' });
+            api.post(`/api/ads/${ads[nextIndex].id}/view`).catch(() => { });
         }, 5000);
 
         return () => clearInterval(interval);
@@ -60,7 +59,7 @@ const BannerCarousel = () => {
 
     const handleBannerClick = (banner) => {
         if (banner.link_url) {
-            fetch(`${API_URL}/api/ads/${banner.id}/click`, { method: 'POST' });
+            api.post(`/api/ads/${banner.id}/click`).catch(() => { });
             window.open(banner.link_url, '_blank');
         }
     };

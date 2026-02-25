@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import api from '../api/api';
 
 const InlineAd = ({ ad }) => {
     const adRef = useRef(null);
@@ -10,7 +11,7 @@ const InlineAd = ({ ad }) => {
                 if (entry.isIntersecting && !viewTracked.current) {
                     viewTracked.current = true;
                     // Track view
-                    fetch(`${API_URL}/api/ads/${ad.id}/view`, { method: 'POST' });
+                    api.post(`/api/ads/${ad.id}/view`).catch(() => { });
                 }
             },
             { threshold: 0.5 }
@@ -25,11 +26,11 @@ const InlineAd = ({ ad }) => {
                 observer.unobserve(adRef.current);
             }
         };
-    }, [ad.id, API_URL]); // Added API_URL to dependencies
+    }, [ad.id]);
 
     const handleClick = () => {
         if (ad.link_url) {
-            fetch(`${API_URL}/api/ads/${ad.id}/click`, { method: 'POST' });
+            api.post(`/api/ads/${ad.id}/click`).catch(() => { });
             window.open(ad.link_url, '_blank');
         }
     };

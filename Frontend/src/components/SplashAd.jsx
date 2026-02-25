@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './UIComponents';
+import api from '../api/api';
 
 const SplashAd = ({ onClose }) => {
     const [ad, setAd] = useState(null);
@@ -14,12 +15,10 @@ const SplashAd = ({ onClose }) => {
             return;
         }
 
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
         // Fetch splash ad
-        fetch(`${API_URL}/api/ads/splash`)
-            .then(res => res.json())
-            .then(data => {
+        api.get('/api/ads/splash')
+            .then(res => {
+                const data = res.data;
                 if (data && data.id) {
                     setAd(data);
                     // Set duration from backend or default to 5
@@ -28,7 +27,7 @@ const SplashAd = ({ onClose }) => {
                     setCanClose(data.is_skippable || false);
 
                     // Track view
-                    fetch(`${API_URL}/api/ads/${data.id}/view`, { method: 'POST' });
+                    api.post(`/api/ads/${data.id}/view`).catch(() => { });
                 } else {
                     onClose();
                 }
@@ -42,16 +41,13 @@ const SplashAd = ({ onClose }) => {
             return () => clearTimeout(timer);
         } else {
             setCanClose(true); // Always allow close after countdown
-
-            // Auto close if user hasn't interacted? Maybe not, better let them close it manually or click it.
-            // But usually splash ads auto-close or show "Close" button.
         }
     }, [countdown]);
 
     const handleClick = () => {
         if (ad && ad.link_url) {
             // Track click
-            fetch(`${API_URL}/ads/${ad.id}/click`, { method: 'POST' });
+            api.post(`/ads/${ad.id}/click`).catch(() => { });
             window.open(ad.link_url, '_blank');
         }
     };
