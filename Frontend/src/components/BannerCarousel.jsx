@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ExternalLink } from 'lucide-react';
 import api from '../api/api';
 
 const BannerCarousel = () => {
@@ -17,7 +17,7 @@ const BannerCarousel = () => {
                 const data = res.data;
                 setAds(data || []);
                 if (data && data.length > 0) {
-                    api.post(`/api/ads/${data[0].id}/view`).catch(() => { });
+                    api.post(`/api/ads/${data[0].id}/view`, {}).catch(() => { });
                 }
             })
             .catch(err => console.error('Banner fetch error:', err));
@@ -29,7 +29,7 @@ const BannerCarousel = () => {
         const interval = setInterval(() => {
             const nextIndex = (currentIndex + 1) % ads.length;
             setCurrentIndex(nextIndex);
-            api.post(`/api/ads/${ads[nextIndex].id}/view`).catch(() => { });
+            api.post(`/api/ads/${ads[nextIndex].id}/view`, {}).catch(() => { });
         }, 5000);
 
         return () => clearInterval(interval);
@@ -51,15 +51,27 @@ const BannerCarousel = () => {
         const isRightSwipe = distance < -minSwipeDistance;
 
         if (isLeftSwipe) {
-            setCurrentIndex((currentIndex + 1) % ads.length);
+            handleNext();
         } else if (isRightSwipe) {
-            setCurrentIndex((currentIndex - 1 + ads.length) % ads.length);
+            handlePrev();
         }
+    };
+
+    const handleNext = () => {
+        const nextIndex = (currentIndex + 1) % ads.length;
+        setCurrentIndex(nextIndex);
+        api.post(`/api/ads/${ads[nextIndex].id}/view`, {}).catch(() => { });
+    };
+
+    const handlePrev = () => {
+        const nextIndex = (currentIndex - 1 + ads.length) % ads.length;
+        setCurrentIndex(nextIndex);
+        api.post(`/api/ads/${ads[nextIndex].id}/view`, {}).catch(() => { });
     };
 
     const handleBannerClick = (banner) => {
         if (banner.link_url) {
-            api.post(`/api/ads/${banner.id}/click`).catch(() => { });
+            api.post(`/api/ads/${banner.id}/click`, {}).catch(() => { });
             window.open(banner.link_url, '_blank');
         }
     };
@@ -70,27 +82,30 @@ const BannerCarousel = () => {
 
     return (
         <div
-            className="relative w-full aspect-[21/9] md:aspect-[3/1] bg-gray-100 rounded-[24px] overflow-hidden group shadow-lg"
+            className="relative w-full aspect-[21/9] md:aspect-[3/1] bg-gray-900 rounded-[32px] overflow-hidden group shadow-2xl transition-all duration-500 border border-white/5"
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
         >
-            {currentBanner.media_type === 'video' ? (
-                <video
-                    src={currentBanner.image_url}
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                />
-            ) : (
-                <img
-                    src={currentBanner.image_url}
-                    alt={currentBanner.title}
-                    className="w-full h-full object-cover"
-                />
-            )}
+            {/* Main Content */}
+            <div className="absolute inset-0 transition-all duration-700 ease-in-out">
+                {currentBanner.media_type === 'video' ? (
+                    <video
+                        src={currentBanner.image_url}
+                        className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                    />
+                ) : (
+                    <img
+                        src={currentBanner.image_url}
+                        alt={currentBanner.title}
+                        className="w-full h-full object-cover transition-transform duration-[2000ms] group-hover:scale-110"
+                    />
+                )}
+            </div>
 
             {/* Content Overlay */}
             <div

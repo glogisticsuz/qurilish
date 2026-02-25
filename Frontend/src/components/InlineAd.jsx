@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import api from '../api/api';
+import { ExternalLink, ShoppingBag } from 'lucide-react';
 
 const InlineAd = ({ ad }) => {
     const adRef = useRef(null);
@@ -11,7 +12,7 @@ const InlineAd = ({ ad }) => {
                 if (entry.isIntersecting && !viewTracked.current) {
                     viewTracked.current = true;
                     // Track view
-                    api.post(`/api/ads/${ad.id}/view`).catch(() => { });
+                    api.post(`/api/ads/${ad.id}/view`, {}).catch(() => { });
                 }
             },
             { threshold: 0.5 }
@@ -30,7 +31,7 @@ const InlineAd = ({ ad }) => {
 
     const handleClick = () => {
         if (ad.link_url) {
-            api.post(`/api/ads/${ad.id}/click`).catch(() => { });
+            api.post(`/api/ads/${ad.id}/click`, {}).catch(() => { });
             window.open(ad.link_url, '_blank');
         }
     };
@@ -39,19 +40,25 @@ const InlineAd = ({ ad }) => {
         <div
             ref={adRef}
             onClick={handleClick}
-            className="bg-purple-50 dark:bg-purple-900/10 rounded-xl overflow-hidden border-2 border-purple-200 dark:border-purple-800 transition-all duration-200 cursor-pointer hover:shadow-lg hover:-translate-y-1 relative group"
+            className="group relative bg-white dark:bg-gray-900 rounded-3xl overflow-hidden border border-gray-100 dark:border-gray-800 transition-all duration-500 cursor-pointer hover:shadow-[0_20px_50px_rgba(139,92,246,0.15)] hover:-translate-y-2 active:scale-95"
         >
-            <div className="absolute top-2 right-2 z-10">
-                <span className="bg-purple-600 text-white text-xs px-2 py-1 rounded-md font-medium shadow-sm">
-                    Reklama
-                </span>
+            {/* Badge */}
+            <div className="absolute top-4 right-4 z-20">
+                <div className="bg-white/70 dark:bg-black/50 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 flex items-center gap-2 shadow-sm">
+                    <span className="w-1.5 h-1.5 bg-purple-500 rounded-full animate-pulse" />
+                    <span className="text-[10px] font-bold text-gray-900 dark:text-white uppercase tracking-wider">
+                        Reklama
+                    </span>
+                </div>
             </div>
 
-            <div className="relative aspect-square overflow-hidden bg-gray-100">
+            {/* Image Container */}
+            <div className="relative aspect-[4/5] overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 {ad.media_type === 'video' ? (
                     <video
                         src={ad.image_url}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         autoPlay
                         muted
                         loop
@@ -61,22 +68,33 @@ const InlineAd = ({ ad }) => {
                     <img
                         src={ad.image_url}
                         alt={ad.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                     />
                 )}
+
+                {/* Floating Action */}
+                <div className="absolute bottom-4 right-4 z-20 translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500">
+                    <div className="w-12 h-12 bg-purple-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-purple-500/30">
+                        <ExternalLink size={20} />
+                    </div>
+                </div>
             </div>
 
-            <div className="p-4">
-                <h3 className="font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 min-h-[3rem]">
+            {/* Content */}
+            <div className="p-5">
+                <h3 className="font-bold text-gray-900 dark:text-white mb-2 line-clamp-2 min-h-[3rem] group-hover:text-purple-600 transition-colors duration-300">
                     {ad.title}
                 </h3>
-                <p className="text-purple-600 font-medium text-sm flex items-center gap-1">
-                    Batafsil ko'rish
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                </p>
+                <div className="flex items-center justify-between mt-4">
+                    <span className="text-purple-600 dark:text-purple-400 font-bold text-sm tracking-tight">
+                        Batafsil ma'lumot
+                    </span>
+                    <ShoppingBag size={16} className="text-gray-400 group-hover:text-purple-500 transition-colors" />
+                </div>
             </div>
+
+            {/* Glass decoration */}
+            <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-purple-500/10 rounded-full blur-3xl group-hover:bg-purple-500/20 transition-all duration-700" />
         </div>
     );
 };
