@@ -316,7 +316,7 @@ const HomeScreen = ({ navigation, route }) => {
             {/* Floating Support Button */}
             <TouchableOpacity
                 style={styles.supportButton}
-                onPress={() => Linking.openURL('https://t.me/Megastroy_support_user_bot')}
+                onPress={() => Linking.openURL('https://t.me/Hamkor_Support_User_bot')}
             >
                 <Headset color="#fff" size={28} />
             </TouchableOpacity>

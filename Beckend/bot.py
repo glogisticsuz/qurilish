@@ -46,7 +46,7 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(
             "Ushbu bot faqat OTP kodlar (tasdiqlash kodi) uchun. 🔐\n\n"
             "Adminga murojaat qilish yoki reklama berish uchun rasmiy qo'llab-quvvatlash botimizga o'ting: \n"
-            "👉 @Megastroy_support_user_bot"
+            "👉 @Hamkor_Support_User_bot"
         )
     else:
         await start(update, context)

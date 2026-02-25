@@ -257,7 +257,7 @@ const Home = () => {
 
             {/* Floating Support Button */}
             <a
-                href="https://t.me/Megastroy_support_user_bot"
+                href="https://t.me/Hamkor_Support_User_bot"
                 target="_blank"
                 rel="noreferrer"
                 className="fixed bottom-24 right-6 w-14 h-14 bg-[#7c3aed] text-white rounded-full flex items-center justify-center shadow-2xl shadow-purple-500/50 hover:scale-110 transition-transform z-40"

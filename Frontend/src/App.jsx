@@ -11,9 +11,9 @@ import Chat from './pages/Chat';
 import Messages from './pages/Messages';
 import './index.css';
 
-const ProtectedRoute = ({ children }) => {
-  const token = localStorage.getItem('token');
-  if (!token) return <Navigate to="/login" replace />;
+const ProtectedRoute = ({ children, isAdmin = false }) => {
+  const token = localStorage.getItem(isAdmin ? 'admin_token' : 'token');
+  if (!token) return <Navigate to={isAdmin ? "/admin/login" : "/login"} replace />;
   return children;
 };
 
@@ -41,13 +41,14 @@ function App() {
             }
           />
           <Route
-            path="/admin"
+            path="/admin/dashboard"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute isAdmin={true}>
                 <AdminDashboard />
               </ProtectedRoute>
             }
           />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
           <Route
             path="/profile/:userId"
             element={<PublicProfile />}

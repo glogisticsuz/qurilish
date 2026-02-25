@@ -342,12 +342,14 @@ export const AdDetailModal = ({ isOpen, onClose, item, onImageClick }) => {
                                         </div>
                                     </div>
                                 </div>
-                                <button
+                                <Button
                                     onClick={() => (window.location.href = `/profile/${item.profile?.user_id}`)}
-                                    className="p-3 bg-white rounded-xl text-purple-600 hover:bg-purple-50 transition-colors"
+                                    className="h-10 px-4 rounded-xl text-purple-600 bg-white border border-purple-100 hover:bg-purple-50 transition-colors shadow-sm"
+                                    variant="secondary"
+                                    size="sm"
                                 >
-                                    <ChevronRight size={20} />
-                                </button>
+                                    PROFILNI KO'RISH
+                                </Button>
                             </div>
                         </div>
 
