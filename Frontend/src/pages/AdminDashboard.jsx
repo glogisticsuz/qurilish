@@ -367,122 +367,153 @@ const AdminDashboard = () => {
 
             {/* Add Ad Modal */}
             {showAddModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                    <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-xl font-bold mb-4">Yangi Reklama Qo'shish</h2>
-                        <form onSubmit={handleAddAd} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Sarlavha</label>
-                                <input
-                                    type="text"
-                                    className="w-full border rounded-lg p-2"
-                                    value={newAd.title}
-                                    onChange={e => setNewAd({ ...newAd, title: e.target.value })}
-                                    required
-                                />
-                            </div>
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-in fade-in duration-300">
+                    <div className="bg-white dark:bg-gray-900 rounded-[32px] max-w-2xl w-full p-8 shadow-2xl shadow-purple-500/20 border border-gray-100 dark:border-gray-800 max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between mb-8">
+                            <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Yangi Reklama Qo'shish</h2>
+                            <button onClick={() => setShowAddModal(false)} className="w-10 h-10 flex items-center justify-center bg-gray-100 rounded-xl hover:bg-gray-200 transition-colors">
+                                <XCircle size={20} className="text-gray-500" />
+                            </button>
+                        </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                        <form onSubmit={handleAddAd} className="space-y-6">
+                            <div className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Turi</label>
-                                    <select
-                                        className="w-full border rounded-lg p-2"
-                                        value={newAd.ad_type}
-                                        onChange={e => setNewAd({ ...newAd, ad_type: e.target.value })}
-                                    >
-                                        <option value="banner">Banner</option>
-                                        <option value="splash">Splash (Kirish)</option>
-                                        <option value="inline">Inline (Orasida)</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Media Turi</label>
-                                    <select
-                                        className="w-full border rounded-lg p-2"
-                                        value={newAd.media_type}
-                                        onChange={e => setNewAd({ ...newAd, media_type: e.target.value })}
-                                    >
-                                        <option value="image">Rasm</option>
-                                        <option value="video">Video</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {newAd.ad_type === 'banner' && (
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">O'rni (Position)</label>
+                                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Sarlavha</label>
                                     <input
-                                        type="number"
-                                        className="w-full border rounded-lg p-2"
-                                        value={newAd.position}
-                                        onChange={e => setNewAd({ ...newAd, position: e.target.value })}
-                                        placeholder="1, 2, 3..."
+                                        type="text"
+                                        className="w-full bg-gray-50 border-none rounded-2xl p-4 font-bold text-gray-900 focus:ring-2 focus:ring-purple-600 outline-none transition-all"
+                                        placeholder="Reklama nomi..."
+                                        value={newAd.title}
+                                        onChange={e => setNewAd({ ...newAd, title: e.target.value })}
+                                        required
                                     />
                                 </div>
-                            )}
 
-                            {newAd.ad_type === 'splash' && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Turi</label>
+                                        <select
+                                            className="w-full bg-gray-50 border-none rounded-2xl p-4 font-bold text-gray-900 focus:ring-2 focus:ring-purple-600 outline-none transition-all appearance-none"
+                                            value={newAd.ad_type}
+                                            onChange={e => setNewAd({ ...newAd, ad_type: e.target.value })}
+                                        >
+                                            <option value="banner">Banner</option>
+                                            <option value="splash">Splash (Kirish)</option>
+                                            <option value="inline">Inline (Orasida)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Media Turi</label>
+                                        <select
+                                            className="w-full bg-gray-50 border-none rounded-2xl p-4 font-bold text-gray-900 focus:ring-2 focus:ring-purple-600 outline-none transition-all appearance-none"
+                                            value={newAd.media_type}
+                                            onChange={e => setNewAd({ ...newAd, media_type: e.target.value })}
+                                        >
+                                            <option value="image">Rasm</option>
+                                            <option value="video">Video</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {newAd.ad_type === 'banner' && (
+                                    <div>
+                                        <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">O'rni (Position)</label>
+                                        <input
+                                            type="number"
+                                            className="w-full bg-gray-50 border-none rounded-2xl p-4 font-bold text-gray-900 focus:ring-2 focus:ring-purple-600 outline-none transition-all"
+                                            value={newAd.position}
+                                            onChange={e => setNewAd({ ...newAd, position: e.target.value })}
+                                            placeholder="1, 2, 3..."
+                                        />
+                                    </div>
+                                )}
+
+                                {newAd.ad_type === 'splash' && (
+                                    <div>
+                                        <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Davomiyligi (sekund)</label>
+                                        <input
+                                            type="number"
+                                            className="w-full bg-gray-50 border-none rounded-2xl p-4 font-bold text-gray-900 focus:ring-2 focus:ring-purple-600 outline-none transition-all"
+                                            value={newAd.duration}
+                                            onChange={e => setNewAd({ ...newAd, duration: e.target.value })}
+                                        />
+                                    </div>
+                                )}
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Boshlanish Vaqti</label>
+                                        <input
+                                            type="datetime-local"
+                                            className="w-full bg-gray-50 border-none rounded-2xl p-4 font-bold text-gray-900 focus:ring-2 focus:ring-purple-600 outline-none transition-all"
+                                            value={newAd.start_date}
+                                            onChange={e => setNewAd({ ...newAd, start_date: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Tugash Vaqti</label>
+                                        <input
+                                            type="datetime-local"
+                                            className="w-full bg-gray-50 border-none rounded-2xl p-4 font-bold text-gray-900 focus:ring-2 focus:ring-purple-600 outline-none transition-all"
+                                            value={newAd.end_date}
+                                            onChange={e => setNewAd({ ...newAd, end_date: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Davomiyligi (sekund)</label>
+                                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Havola (Link URL)</label>
                                     <input
-                                        type="number"
-                                        className="w-full border rounded-lg p-2"
-                                        value={newAd.duration}
-                                        onChange={e => setNewAd({ ...newAd, duration: e.target.value })}
+                                        type="text"
+                                        className="w-full bg-gray-50 border-none rounded-2xl p-4 font-bold text-gray-900 focus:ring-2 focus:ring-purple-600 outline-none transition-all"
+                                        value={newAd.link_url}
+                                        onChange={e => setNewAd({ ...newAd, link_url: e.target.value })}
+                                        placeholder="https://..."
                                     />
                                 </div>
-                            )}
 
-                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1">Boshlanish Vaqti</label>
-                                    <input
-                                        type="datetime-local"
-                                        className="w-full border rounded-lg p-2"
-                                        value={newAd.start_date}
-                                        onChange={e => setNewAd({ ...newAd, start_date: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1">Tugash Vaqti</label>
-                                    <input
-                                        type="datetime-local"
-                                        className="w-full border rounded-lg p-2"
-                                        value={newAd.end_date}
-                                        onChange={e => setNewAd({ ...newAd, end_date: e.target.value })}
-                                    />
+                                    <label className="block text-xs font-black uppercase tracking-widest text-gray-400 mb-2">Media Fayli</label>
+                                    <div className="relative group">
+                                        <input
+                                            type="file"
+                                            id="ad-file"
+                                            className="hidden"
+                                            onChange={e => setNewAd({ ...newAd, file: e.target.files[0] })}
+                                            required
+                                            accept="image/*,video/*"
+                                        />
+                                        <label
+                                            htmlFor="ad-file"
+                                            className="w-full bg-purple-50 hover:bg-purple-100 border-2 border-dashed border-purple-200 rounded-2xl p-8 flex flex-col items-center justify-center cursor-pointer transition-all hover:border-purple-400"
+                                        >
+                                            <div className="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center text-purple-600 mb-3 group-hover:scale-110 transition-transform">
+                                                <Plus size={24} />
+                                            </div>
+                                            <span className="font-bold text-purple-700">
+                                                {newAd.file ? newAd.file.name : 'Faylni tanlang yoki shu yerga tashlang'}
+                                            </span>
+                                            <span className="text-xs text-purple-400 mt-1 font-medium">PNG, JPG, MP4 max 20MB</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Havola (Link URL)</label>
-                                <input
-                                    type="text"
-                                    className="w-full border rounded-lg p-2"
-                                    value={newAd.link_url}
-                                    onChange={e => setNewAd({ ...newAd, link_url: e.target.value })}
-                                    placeholder="https://..."
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-sm font-medium mb-1">Fayl</label>
-                                <input
-                                    type="file"
-                                    className="w-full border rounded-lg p-2"
-                                    onChange={e => setNewAd({ ...newAd, file: e.target.files[0] })}
-                                    required
-                                    accept="image/*,video/*"
-                                />
-                            </div>
-
-                            <div className="flex gap-2 justify-end mt-4">
-                                <Button variant="secondary" onClick={() => setShowAddModal(false)} type="button">
+                            <div className="flex gap-4 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowAddModal(false)}
+                                    className="flex-1 py-4 px-6 bg-gray-100 text-gray-600 font-black rounded-2xl hover:bg-gray-200 transition-all uppercase tracking-widest text-xs"
+                                >
                                     Bekor qilish
-                                </Button>
-                                <Button type="submit">
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="flex-1 py-4 px-6 bg-purple-600 text-white font-black rounded-2xl shadow-xl shadow-purple-600/30 hover:bg-purple-700 transition-all active:scale-95 uppercase tracking-widest text-xs"
+                                >
                                     Saqlash
-                                </Button>
+                                </button>
                             </div>
                         </form>
                     </div>
