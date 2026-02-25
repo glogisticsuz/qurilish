@@ -4,7 +4,6 @@ import { Button, Card, Spinner } from '../components/UIComponents';
 import { adminApi } from '../api/api';
 
 const AdminDashboard = () => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const [stats, setStats] = useState(null);
     const [ads, setAds] = useState([]);
     const [adStats, setAdStats] = useState([]);
@@ -238,7 +237,7 @@ const AdminDashboard = () => {
                                             <Button
                                                 size="sm"
                                                 variant={ad.is_active ? 'secondary' : 'success'}
-                                                onClick={() => handleToggleAd(ad.id, ad.is_active)}
+                                                onClick={() => toggleAdStatus(ad.id, ad.is_active)}
                                                 className="flex-1"
                                             >
                                                 {ad.is_active ? 'O\'chirish' : 'Yoqish'}
@@ -246,7 +245,7 @@ const AdminDashboard = () => {
                                             <Button
                                                 size="sm"
                                                 variant="danger"
-                                                onClick={() => handleDeleteAd(ad.id)}
+                                                onClick={() => deleteAd(ad.id)}
                                             >
                                                 🗑️
                                             </Button>
