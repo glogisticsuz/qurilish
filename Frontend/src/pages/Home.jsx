@@ -70,7 +70,7 @@ const Home = () => {
 
     const fetchInlineAds = async () => {
         try {
-            const res = await api.get('/ads/inline');
+            const res = await api.get('/api/ads/inline');
             setInlineAds(res.data || []);
         } catch (error) {
             console.error("Error fetching inline ads:", error);

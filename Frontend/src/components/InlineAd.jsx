@@ -9,7 +9,7 @@ const InlineAd = ({ ad }) => {
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => {
-                if (entry.isIntersecting && !viewTracked.current) {
+                if (entry.isIntersecting && !viewTracked.current && ad?.id) {
                     viewTracked.current = true;
                     // Track view
                     api.post(`/api/ads/${ad.id}/view`, {}).catch(() => { });

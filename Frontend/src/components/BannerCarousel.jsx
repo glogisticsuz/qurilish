@@ -16,7 +16,7 @@ const BannerCarousel = () => {
             .then(res => {
                 const data = res.data;
                 setAds(data || []);
-                if (data && data.length > 0) {
+                if (data && data.length > 0 && data[0]?.id) {
                     api.post(`/api/ads/${data[0].id}/view`, {}).catch(() => { });
                 }
             })
