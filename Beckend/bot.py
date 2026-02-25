@@ -38,9 +38,18 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles text buttons."""
-    logging.info(f"OTP Bot: Received text '{update.message.text}' from {update.effective_user.id}")
-    pass
+    """Handles text buttons and redirects to support bot if needed."""
+    text = update.message.text
+    logging.info(f"OTP Bot: Received text '{text}' from {update.effective_user.id}")
+    
+    if any(word in text.lower() for word in ["murojaat", "reklama", "admin", "yordam"]):
+        await update.message.reply_text(
+            "Ushbu bot faqat OTP kodlar (tasdiqlash kodi) uchun. 🔐\n\n"
+            "Adminga murojaat qilish yoki reklama berish uchun rasmiy qo'llab-quvvatlash botimizga o'ting: \n"
+            "👉 @Megastroy_support_user_bot"
+        )
+    else:
+        await start(update, context)
 
 async def handle_contact(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the shared contact and updates the database."""

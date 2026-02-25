@@ -13,12 +13,12 @@ const BannerCarousel = () => {
     const minSwipeDistance = 50;
 
     useEffect(() => {
-        fetch(`${API_URL}/ads/banners`)
+        fetch(`${API_URL}/api/ads/banners`)
             .then(res => res.json())
             .then(data => {
                 setAds(data || []);
                 if (data && data.length > 0) {
-                    fetch(`${API_URL}/ads/${data[0].id}/view`, { method: 'POST' });
+                    fetch(`${API_URL}/api/ads/${data[0].id}/view`, { method: 'POST' });
                 }
             })
             .catch(err => console.error('Banner fetch error:', err));
@@ -30,7 +30,7 @@ const BannerCarousel = () => {
         const interval = setInterval(() => {
             const nextIndex = (currentIndex + 1) % ads.length;
             setCurrentIndex(nextIndex);
-            fetch(`${API_URL}/ads/${ads[nextIndex].id}/view`, { method: 'POST' });
+            fetch(`${API_URL}/api/ads/${ads[nextIndex].id}/view`, { method: 'POST' });
         }, 5000);
 
         return () => clearInterval(interval);
@@ -60,7 +60,7 @@ const BannerCarousel = () => {
 
     const handleBannerClick = (banner) => {
         if (banner.link_url) {
-            fetch(`${API_URL}/ads/${banner.id}/click`, { method: 'POST' });
+            fetch(`${API_URL}/api/ads/${banner.id}/click`, { method: 'POST' });
             window.open(banner.link_url, '_blank');
         }
     };

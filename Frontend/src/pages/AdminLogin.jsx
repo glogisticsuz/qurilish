@@ -15,22 +15,21 @@ const AdminLogin = () => {
         setError('');
 
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-            const res = await fetch(`${API_URL}/admin/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password })
-            });
+            const { adminApi } = await import('../api/api');
+            const res = await adminApi.login(username, password);
 
-            if (res.ok) {
-                const data = await res.json();
-                localStorage.setItem('admin_token', data.access_token);
+            if (res.data && res.data.access_token) {
+                localStorage.setItem('admin_token', res.data.access_token);
                 navigate('/admin/dashboard');
             } else {
                 setError('Login yoki parol noto\'g\'ri');
             }
         } catch (err) {
-            setError('Xatolik yuz berdi');
+            if (err.response && err.response.status === 401) {
+                setError('Login yoki parol noto\'g\'ri');
+            } else {
+                setError('Xatolik yuz berdi');
+            }
         } finally {
             setLoading(false);
         }

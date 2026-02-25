@@ -25,6 +25,20 @@ bot = telebot.TeleBot(API_TOKEN)
 # Foydalanuvchi holatlarini saqlash uchun lug'at
 user_data = {}
 
+def get_main_keyboard():
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
+    keyboard.add(
+        types.KeyboardButton("📝 Murojaat qoldirish"),
+        types.KeyboardButton("📢 Reklama berish")
+    )
+    keyboard.add(types.KeyboardButton("ℹ️ Ma'lumot"))
+    return keyboard
+
+def get_cancel_keyboard():
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard.add(types.KeyboardButton("🔙 Bekor qilish"))
+    return keyboard
+
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     chat_id = message.chat.id
@@ -33,46 +47,80 @@ def send_welcome(message):
     
     bot.send_message(
         chat_id,
-        "Assalomu alaykum! <b>HamkorQurilish</b> qo'llab-quvvatlash botiga xush kelibsiz.\n\n"
-        "Murojaatingizni qoldirishingiz mumkin.",
-        parse_mode='HTML'
+        "Assalomu alaykum! <b>HamkorQurilish</b> qo'llab-quvvatlash botiga xush kelibsiz. ✨\n\n"
+        "Quyidagi tugmalardan birini tanlang:",
+        parse_mode='HTML',
+        reply_markup=get_main_keyboard()
     )
-    process_contact_admin_core(chat_id)
 
-def process_contact_admin_core(chat_id):
+@bot.message_handler(func=lambda message: message.text == "📝 Murojaat qoldirish")
+def start_report(message):
+    chat_id = message.chat.id
     msg = bot.send_message(
         chat_id,
-        "📝 Iltimos, murojaatingiz <b>mavzusini</b> (sarlavhasini) kiriting:",
+        "📂 Iltimos, murojaatingiz <b>mavzusini</b> (sarlavhasini) yozing:\n\n"
+        "<i>Masalan: Taklif, Shikoyat yoki Xatolik haqida.</i>",
         parse_mode='HTML',
-        reply_markup=types.ReplyKeyboardRemove()
+        reply_markup=get_cancel_keyboard()
     )
     bot.register_next_step_handler(msg, get_subject)
 
+@bot.message_handler(func=lambda message: message.text == "📢 Reklama berish")
+def start_ads(message):
+    chat_id = message.chat.id
+    bot.send_message(
+        chat_id,
+        "📢 <b>Reklama xizmati</b>\n\n"
+        "Platformamizda reklama berish bo'yicha ma'lumot olish uchun quyidagi mavzuni tanlab xabar qoldiring yoki to'g'ridan-to'g'ri admin bilan bog'laning.\n\n"
+        "Murojaat qoldirish tugmasini bosib, mavzuga 'REKLAMA' deb yozishingiz mumkin.",
+        parse_mode='HTML',
+        reply_markup=get_main_keyboard()
+    )
+
+@bot.message_handler(func=lambda message: message.text == "ℹ️ Ma'lumot")
+def info_msg(message):
+    bot.send_message(
+        message.chat.id,
+        "💡 <b>HamkorQurilish Bot</b>\n\n"
+        "Ushbu bot orqali siz loyiha ma'muriyatiga o'z murojaatlaringizni, "
+        "takliflaringizni yoki reklama bo'yicha so'rovlaringizni yuborishingiz mumkin.",
+        parse_mode='HTML'
+    )
+
 def get_subject(message):
     chat_id = message.chat.id
-    if message.text == '/start':
+    text = message.text
+
+    if text == "🔙 Bekor qilish" or text == "/start":
         send_welcome(message)
         return
 
-    user_data[chat_id] = {'subject': message.text}
-    msg = bot.send_message(chat_id, "ℹ️ Endi murojaat haqida <b>batafsil</b> ma'lumot qoldiring:", parse_mode='HTML')
+    user_data[chat_id] = {'subject': text}
+    msg = bot.send_message(
+        chat_id, 
+        "ℹ️ Endi murojaat haqida <b>batafsil</b> ma'lumot yozing:", 
+        parse_mode='HTML',
+        reply_markup=get_cancel_keyboard()
+    )
     bot.register_next_step_handler(msg, get_details)
 
 def get_details(message):
     chat_id = message.chat.id
-    if message.text == '/start':
+    text = message.text
+
+    if text == "🔙 Bekor qilish" or text == "/start":
         send_welcome(message)
         return
 
     if chat_id not in user_data:
-        process_contact_admin_core(chat_id)
+        send_welcome(message)
         return
 
-    user_data[chat_id]['details'] = message.text
+    user_data[chat_id]['details'] = text
     
-    # Telefon raqamini so'rash
     keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True, one_time_keyboard=True)
     keyboard.add(types.KeyboardButton("📞 Telefon raqamni yuborish", request_contact=True))
+    keyboard.add(types.KeyboardButton("🔙 Bekor qilish"))
     
     msg = bot.send_message(
         chat_id,
@@ -84,12 +132,13 @@ def get_details(message):
 
 def get_phone_and_finalize(message):
     chat_id = message.chat.id
-    if message.text == '/start':
+    
+    if message.text == "🔙 Bekor qilish" or message.text == "/start":
         send_welcome(message)
         return
 
     if chat_id not in user_data:
-        process_contact_admin_core(chat_id)
+        send_welcome(message)
         return
 
     subject = html.escape(user_data[chat_id]['subject'])
@@ -132,17 +181,20 @@ def get_phone_and_finalize(message):
             chat_id,
             "✅ Rahmat! Murojaatingiz adminga muvaffaqiyatli yetkazildi.\n"
             "Tez orada siz bilan bog'lanishadi.",
-            reply_markup=types.ReplyKeyboardRemove(),
+            reply_markup=get_main_keyboard(),
             parse_mode='HTML'
         )
     else:
-        bot.send_message(chat_id, "❌ Xatolik yuz berdi. Iltimos keyinroq qayta urinib ko'ring.")
+        bot.send_message(
+            chat_id, 
+            "❌ Xatolik yuz berdi. Iltimos keyinroq qayta urinib ko'ring.",
+            reply_markup=get_main_keyboard()
+        )
     
     user_data.pop(chat_id, None)
 
 @bot.message_handler(func=lambda message: message.reply_to_message is not None)
 def handle_admin_reply(message):
-    # Only if reply is from Admin
     if str(message.from_user.id) != str(ADMIN_ID):
         return
 

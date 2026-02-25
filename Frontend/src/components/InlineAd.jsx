@@ -10,7 +10,7 @@ const InlineAd = ({ ad }) => {
                 if (entry.isIntersecting && !viewTracked.current) {
                     viewTracked.current = true;
                     // Track view
-                    fetch(`${API_URL}/ads/${ad.id}/view`, { method: 'POST' });
+                    fetch(`${API_URL}/api/ads/${ad.id}/view`, { method: 'POST' });
                 }
             },
             { threshold: 0.5 }
@@ -29,7 +29,7 @@ const InlineAd = ({ ad }) => {
 
     const handleClick = () => {
         if (ad.link_url) {
-            fetch(`${API_URL}/ads/${ad.id}/click`, { method: 'POST' });
+            fetch(`${API_URL}/api/ads/${ad.id}/click`, { method: 'POST' });
             window.open(ad.link_url, '_blank');
         }
     };

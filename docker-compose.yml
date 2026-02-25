@@ -11,6 +11,7 @@ services:
     ports:
       - "8001:8000"
     volumes:
+      - ./Beckend:/app
       - ./Beckend/megastroy.db:/app/megastroy.db
       - ./Beckend/hamkorqurilish.db:/app/hamkorqurilish.db
     command: uvicorn main:app --host 0.0.0.0 --port 8000
@@ -23,6 +24,7 @@ services:
     env_file:
       - ./Beckend/.env
     volumes:
+      - ./Beckend:/app
       - ./Beckend/megastroy.db:/app/megastroy.db
     command: python bot.py
 
@@ -33,6 +35,8 @@ services:
     restart: always
     env_file:
       - ./Beckend/.env
+    volumes:
+      - ./Beckend:/app
     command: python support_bot.py
 
   frontend:

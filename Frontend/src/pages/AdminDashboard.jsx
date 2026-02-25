@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button, Card, Spinner } from '../components/UIComponents';
 
 const AdminDashboard = () => {
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
     const [stats, setStats] = useState(null);
     const [ads, setAds] = useState([]);
     const [adStats, setAdStats] = useState([]);
@@ -24,7 +25,7 @@ const AdminDashboard = () => {
 
     // Check admin auth
     useEffect(() => {
-        const token = localStorage.getItem('adminToken');
+        const token = localStorage.getItem('admin_token');
         if (!token) {
             navigate('/admin/login');
         } else {
@@ -34,13 +35,13 @@ const AdminDashboard = () => {
 
     const fetchAllData = async () => {
         try {
-            const token = localStorage.getItem('adminToken');
+            const token = localStorage.getItem('admin_token');
             const headers = { 'Authorization': `Bearer ${token}` };
 
             const [statsRes, adsRes, adStatsRes] = await Promise.all([
-                fetch(`${API_URL}/admin/stats/overview`, { headers }),
-                fetch(`${API_URL}/admin/ads`, { headers }),
-                fetch(`${API_URL}/admin/stats/ads`, { headers })
+                fetch(`${API_URL}/api/admin/stats/overview`, { headers }),
+                fetch(`${API_URL}/api/admin/ads`, { headers }),
+                fetch(`${API_URL}/api/admin/stats/ads`, { headers })
             ]);
 
             if (!statsRes.ok || !adsRes.ok || !adStatsRes.ok) {
@@ -54,7 +55,7 @@ const AdminDashboard = () => {
             console.error('Error fetching admin data:', error);
             // Optionally, handle token expiration or invalid token here
             if (error.message === 'Failed to fetch data' && error.response && error.response.status === 401) {
-                localStorage.removeItem('adminToken');
+                localStorage.removeItem('admin_token');
                 navigate('/admin/login');
             }
         } finally {
@@ -64,9 +65,9 @@ const AdminDashboard = () => {
 
     const fetchAds = async () => {
         try {
-            const token = localStorage.getItem('adminToken');
+            const token = localStorage.getItem('admin_token');
             const headers = { 'Authorization': `Bearer ${token}` };
-            const adsRes = await fetch(`${API_URL}/admin/ads`, { headers });
+            const adsRes = await fetch(`${API_URL}/api/admin/ads`, { headers });
             if (!adsRes.ok) throw new Error('Failed to fetch ads');
             setAds(await adsRes.json());
         } catch (error) {
@@ -75,14 +76,14 @@ const AdminDashboard = () => {
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('adminToken');
+        localStorage.removeItem('admin_token');
         navigate('/admin/login');
     };
 
     const toggleAdStatus = async (adId, currentStatus) => {
         try {
-            const token = localStorage.getItem('adminToken');
-            await fetch(`${API_URL}/admin/ads/${adId}?is_active=${!currentStatus}`, {
+            const token = localStorage.getItem('admin_token');
+            await fetch(`${API_URL}/api/admin/ads/${adId}?is_active=${!currentStatus}`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -96,8 +97,8 @@ const AdminDashboard = () => {
         if (!window.confirm("Rostdan ham o'chirmoqchimisiz?")) return;
 
         try {
-            const token = localStorage.getItem('adminToken');
-            await fetch(`${API_URL}/admin/ads/${adId}`, {
+            const token = localStorage.getItem('admin_token');
+            await fetch(`${API_URL}/api/admin/ads/${adId}`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -121,8 +122,8 @@ const AdminDashboard = () => {
         if (newAd.file) formData.append('file', newAd.file);
 
         try {
-            const token = localStorage.getItem('adminToken');
-            const res = await fetch(`${API_URL}/admin/ads`, {
+            const token = localStorage.getItem('admin_token');
+            const res = await fetch(`${API_URL}/api/admin/ads`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData

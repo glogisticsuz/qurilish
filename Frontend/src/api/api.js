@@ -24,9 +24,9 @@ api.interceptors.response.use(
 );
 
 export const authApi = {
-    login: (phone, role) => api.post('/auth/login', { phone, role }),
-    verify: (phone, otp_code) => api.post('/auth/verify', { phone, otp_code }),
-    getMe: () => api.get('/users/me'),
+    login: (phone, role) => api.post('/api/auth/login', { phone, role }),
+    verify: (phone, otp_code) => api.post('/api/auth/verify', { phone, otp_code }),
+    getMe: () => api.get('/api/users/me'),
 };
 
 export const profileApi = {
@@ -49,24 +49,25 @@ export const profileApi = {
 };
 
 export const chatApi = {
-    getChats: () => api.get('/messages/chats'),
-    getHistory: (userId) => api.get(`/messages/${userId}`),
-    sendMessage: (data) => api.post('/messages/send', data),
-    sendImage: (formData) => api.post('/messages/send-image', formData, {
+    getChats: () => api.get('/api/messages/chats'),
+    getHistory: (userId) => api.get(`/api/messages/${userId}`),
+    sendMessage: (data) => api.post('/api/messages/send', data),
+    sendImage: (formData) => api.post('/api/messages/send-image', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }),
-    markAsRead: (userId) => api.post(`/messages/${userId}/read`),
+    markAsRead: (userId) => api.post(`/api/messages/${userId}/read`),
 };
 
 export const reviewApi = {
-    getReviews: (userId) => api.get(`/reviews/${userId}`),
-    addReview: (userId, data) => api.post(`/reviews/${userId}`, data),
+    getReviews: (userId) => api.get(`/api/reviews/${userId}`),
+    addReview: (userId, data) => api.post(`/api/reviews/${userId}`, data),
 };
 
 export const adminApi = {
-    getStats: () => api.get('/admin/stats'),
-    getUnverified: () => api.get('/admin/unverified'),
-    verifyProfile: (profileId) => api.post(`/admin/profiles/${profileId}/verify`),
+    login: (username, password) => api.post('/api/admin/login', { username, password }),
+    getStats: () => api.get('/api/admin/stats'),
+    getUnverified: () => api.get('/api/admin/unverified'),
+    verifyProfile: (profileId) => api.post(`/api/admin/profiles/${profileId}/verify`),
 };
 
 export default api;

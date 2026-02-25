@@ -209,7 +209,7 @@ async def get_user_portfolio(user_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Profil topilmadi")
     return profile.items
 
-@app.post("/api/profile/portfolio", response_model=schemas.PortfolioItem)
+@app.post("/profile/portfolio", response_model=schemas.PortfolioItem)
 async def upload_portfolio(
     title: str = Form(...),
     price: float = Form(0),
@@ -273,7 +273,7 @@ async def upload_portfolio(
     db.refresh(new_item)
     return new_item
 
-@app.get("/api/items", response_model=List[schemas.PortfolioItemPublic])
+@app.get("/items", response_model=List[schemas.PortfolioItemPublic])
 async def get_all_items(
     category_id: Optional[int] = None,
     item_type: Optional[str] = None,
@@ -286,7 +286,7 @@ async def get_all_items(
         query = query.filter(models.PortfolioItem.item_type == item_type)
     return query.order_by(models.PortfolioItem.id.desc()).all()
 
-@app.post("/api/items/{item_id}/view")
+@app.post("/items/{item_id}/view")
 async def increment_item_view(item_id: int, db: Session = Depends(database.get_db)):
     item = db.query(models.PortfolioItem).filter(models.PortfolioItem.id == item_id).first()
     if not item:
@@ -295,7 +295,7 @@ async def increment_item_view(item_id: int, db: Session = Depends(database.get_d
     db.commit()
     return {"views_count": item.views_count}
 
-@app.delete("/api/items/{item_id}")
+@app.delete("/items/{item_id}")
 async def delete_portfolio_item(item_id: int, db: Session = Depends(database.get_db), current_user: models.User = Depends(auth.get_current_user)):
     item = db.query(models.PortfolioItem).join(models.Profile).filter(
         models.PortfolioItem.id == item_id,

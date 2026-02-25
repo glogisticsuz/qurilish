@@ -1,7 +1,7 @@
 import requests
 import json
 
-url = "http://localhost:8000/admin/login"
+url = "http://localhost:8001/admin/login"
 headers = {"Content-Type": "application/json"}
 data = {
     "username": "Megastroy+998916006046",

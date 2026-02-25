@@ -17,7 +17,7 @@ const SplashAd = ({ onClose }) => {
         const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
         // Fetch splash ad
-        fetch(`${API_URL}/ads/splash`)
+        fetch(`${API_URL}/api/ads/splash`)
             .then(res => res.json())
             .then(data => {
                 if (data && data.id) {
@@ -28,7 +28,7 @@ const SplashAd = ({ onClose }) => {
                     setCanClose(data.is_skippable || false);
 
                     // Track view
-                    fetch(`${API_URL}/ads/${data.id}/view`, { method: 'POST' });
+                    fetch(`${API_URL}/api/ads/${data.id}/view`, { method: 'POST' });
                 } else {
                     onClose();
                 }
