@@ -5,7 +5,9 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
+    const isAdminPath = config.url.includes('/api/admin');
+    const token = localStorage.getItem(isAdminPath ? 'admin_token' : 'token');
+
     if (token) {
         config.headers.Authorization = `Bearer ${token}`;
     }
@@ -65,7 +67,14 @@ export const reviewApi = {
 
 export const adminApi = {
     login: (username, password) => api.post('/api/admin/login', { username, password }),
-    getStats: () => api.get('/api/admin/stats'),
+    getStatsOverview: () => api.get('/api/admin/stats/overview'),
+    getAds: () => api.get('/api/admin/ads'),
+    getAdStats: () => api.get('/api/admin/stats/ads'),
+    updateAd: (adId, is_active) => api.put(`/api/admin/ads/${adId}`, null, { params: { is_active } }),
+    deleteAd: (adId) => api.delete(`/api/admin/ads/${adId}`),
+    createAd: (formData) => api.post('/api/admin/ads', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    }),
     getUnverified: () => api.get('/api/admin/unverified'),
     verifyProfile: (profileId) => api.post(`/api/admin/profiles/${profileId}/verify`),
 };

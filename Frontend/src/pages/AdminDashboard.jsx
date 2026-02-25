@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button, Card, Spinner } from '../components/UIComponents';
+import { adminApi } from '../api/api';
 
 const AdminDashboard = () => {
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -35,26 +36,18 @@ const AdminDashboard = () => {
 
     const fetchAllData = async () => {
         try {
-            const token = localStorage.getItem('admin_token');
-            const headers = { 'Authorization': `Bearer ${token}` };
-
             const [statsRes, adsRes, adStatsRes] = await Promise.all([
-                fetch(`${API_URL}/api/admin/stats/overview`, { headers }),
-                fetch(`${API_URL}/api/admin/ads`, { headers }),
-                fetch(`${API_URL}/api/admin/stats/ads`, { headers })
+                adminApi.getStatsOverview(),
+                adminApi.getAds(),
+                adminApi.getAdStats()
             ]);
 
-            if (!statsRes.ok || !adsRes.ok || !adStatsRes.ok) {
-                throw new Error('Failed to fetch data');
-            }
-
-            setStats(await statsRes.json());
-            setAds(await adsRes.json());
-            setAdStats(await adStatsRes.json());
+            setStats(statsRes.data);
+            setAds(adsRes.data);
+            setAdStats(adStatsRes.data);
         } catch (error) {
             console.error('Error fetching admin data:', error);
-            // Optionally, handle token expiration or invalid token here
-            if (error.message === 'Failed to fetch data' && error.response && error.response.status === 401) {
+            if (error.response && error.response.status === 401) {
                 localStorage.removeItem('admin_token');
                 navigate('/admin/login');
             }
@@ -65,11 +58,8 @@ const AdminDashboard = () => {
 
     const fetchAds = async () => {
         try {
-            const token = localStorage.getItem('admin_token');
-            const headers = { 'Authorization': `Bearer ${token}` };
-            const adsRes = await fetch(`${API_URL}/api/admin/ads`, { headers });
-            if (!adsRes.ok) throw new Error('Failed to fetch ads');
-            setAds(await adsRes.json());
+            const res = await adminApi.getAds();
+            setAds(res.data);
         } catch (error) {
             console.error('Error fetching ads:', error);
         }
@@ -82,11 +72,7 @@ const AdminDashboard = () => {
 
     const toggleAdStatus = async (adId, currentStatus) => {
         try {
-            const token = localStorage.getItem('admin_token');
-            await fetch(`${API_URL}/api/admin/ads/${adId}?is_active=${!currentStatus}`, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            await adminApi.updateAd(adId, !currentStatus);
             fetchAds();
         } catch (error) {
             console.error('Error toggling ad:', error);
@@ -97,11 +83,7 @@ const AdminDashboard = () => {
         if (!window.confirm("Rostdan ham o'chirmoqchimisiz?")) return;
 
         try {
-            const token = localStorage.getItem('admin_token');
-            await fetch(`${API_URL}/api/admin/ads/${adId}`, {
-                method: 'DELETE',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
+            await adminApi.deleteAd(adId);
             fetchAds();
         } catch (error) {
             console.error('Error deleting ad:', error);
@@ -115,6 +97,7 @@ const AdminDashboard = () => {
         formData.append('ad_type', newAd.ad_type);
         if (newAd.position) formData.append('position', newAd.position);
         if (newAd.link_url) formData.append('link_url', newAd.link_url);
+        // Date formats might need conversion depending on backend expectations
         if (newAd.start_date) formData.append('start_date', newAd.start_date);
         if (newAd.end_date) formData.append('end_date', newAd.end_date);
         formData.append('media_type', newAd.media_type);
@@ -122,14 +105,8 @@ const AdminDashboard = () => {
         if (newAd.file) formData.append('file', newAd.file);
 
         try {
-            const token = localStorage.getItem('admin_token');
-            const res = await fetch(`${API_URL}/api/admin/ads`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: formData
-            });
-
-            if (res.ok) {
+            const res = await adminApi.createAd(formData);
+            if (res.data) {
                 setShowAddModal(false);
                 setNewAd({
                     title: '',
@@ -142,12 +119,11 @@ const AdminDashboard = () => {
                     duration: 5,
                     file: null
                 });
-                fetchData();
-            } else {
-                alert("Xatolik yuz berdi");
+                fetchAllData();
             }
         } catch (error) {
             console.error('Error adding ad:', error);
+            alert("Xatolik yuz berdi");
         }
     };
 

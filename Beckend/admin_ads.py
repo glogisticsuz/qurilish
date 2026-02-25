@@ -23,17 +23,31 @@ def check_admin(user: models.User = Depends(auth.get_current_user)):
 # === ADMIN AUTHENTICATION ===
 
 @router.post("/admin/login")
-async def admin_login(data: schemas.AdminLoginRequest):
+async def admin_login(data: schemas.AdminLoginRequest, db: Session = Depends(get_db)):
     try:
         username = data.username
         password = data.password
         
-        print(f"Admin login attempt: {username}") # Don't log password in production, but okay for debug here
+        print(f"Admin login attempt: {username}")
         
         if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
-            # Create admin token
-            SECRET_KEY = os.getenv("JWT_SECRET", "supersecretkey")
-            token = jwt.encode({"sub": "admin", "role": "admin"}, SECRET_KEY, algorithm="HS256")
+            # Check if admin user exists in DB
+            user = db.query(models.User).filter(models.User.phone == username).first()
+            if not user:
+                user = models.User(
+                    phone=username,
+                    role=models.UserRole.admin,
+                    username="admin"
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
+            elif user.role != models.UserRole.admin:
+                user.role = models.UserRole.admin
+                db.commit()
+
+            # Create standard access token
+            token = auth.create_access_token(data={"sub": user.phone})
             return {"access_token": token, "token_type": "bearer"}
             
         raise HTTPException(status_code=401, detail="Invalid credentials")
