@@ -14,10 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yangiustalar.app"
+      "bundleIdentifier": "com.king.hamkorqurilish"
     },
     "android": {
-      "package": "com.yangiustalar.app",
+      "package": "com.king.hamkorqurilish",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon-new.png",
         "backgroundColor": "#FFFFFF"
