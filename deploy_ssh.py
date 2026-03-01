@@ -1,5 +1,10 @@
 import paramiko
 import sys
+import io
+
+# Fix Unicode issues in Windows console
+if sys.stdout.encoding.lower() != 'utf-8':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 def deploy(hostname, username, password):
     print(f"Connecting to {hostname} as {username}...", flush=True)
