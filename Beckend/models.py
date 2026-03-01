@@ -141,3 +141,23 @@ class AdClick(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     clicked_at = Column(DateTime, default=datetime.utcnow)
     ip_address = Column(String, nullable=True)
+
+class BlockedUser(Base):
+    __tablename__ = "blocked_users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    blocker_id = Column(Integer, ForeignKey("users.id"))
+    blocked_id = Column(Integer, ForeignKey("users.id"))
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class Report(Base):
+    __tablename__ = "reports"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    reporter_id = Column(Integer, ForeignKey("users.id"))
+    reported_user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+    item_id = Column(Integer, ForeignKey("portfolio_items.id"), nullable=True)
+    reason = Column(String)
+    details = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    is_resolved = Column(Boolean, default=False)

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, RefreshControl, Dimensions, FlatList } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, RefreshControl, Dimensions, FlatList, Alert } from 'react-native';
 import { MapPin, Briefcase, ChevronLeft, MessageCircle, ShieldCheck } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { profileApi } from '../api/api';
+import api, { profileApi } from '../api/api';
 import { Button, ProductCard } from '../components/UIComponents';
 
 const { width } = Dimensions.get('window');
@@ -27,6 +27,54 @@ const PublicProfileScreen = ({ route, navigation }) => {
         } finally {
             setLoading(false);
             setRefreshing(false);
+        }
+    };
+
+    const handleBlockUser = () => {
+        Alert.alert(
+            "Foydalanuvchini bloklash",
+            "Ushbu foydalanuvchini bloklamoqchimisiz? Siz boshqa uning e'lonlarini ko'rmaysiz va u sizga xabar yozolmaydi.",
+            [
+                { text: "Bekor qilish", style: "cancel" },
+                {
+                    text: "Bloklash",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await api.post(`/users/${userId}/block`);
+                            Alert.alert("Muvaffaqiyatli", "Foydalanuvchi bloklandi");
+                            navigation.goBack();
+                        } catch (err) {
+                            Alert.alert("Xato", "Bloklashda xatolik yuz berdi");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleReportUser = () => {
+        Alert.alert(
+            "Shikoyat qilish",
+            "Nima sababdan shikoyat qilmoqchisiz?",
+            [
+                { text: "Spam", onPress: () => submitReport("Spam") },
+                { text: "Taqiqlangan kontent", onPress: () => submitReport("Inappropriate Content") },
+                { text: "Bekor qilish", style: "cancel" }
+            ]
+        );
+    };
+
+    const submitReport = async (reason) => {
+        try {
+            await api.post('/reports', {
+                reported_user_id: userId,
+                reason: reason,
+                details: "Reported from profile screen"
+            });
+            Alert.alert("Rahmat", "Shikoyatingiz ko'rib chiqish uchun yuborildi");
+        } catch (err) {
+            Alert.alert("Xato", "Shikoyat yuborishda xatolik");
         }
     };
 
@@ -84,6 +132,36 @@ const PublicProfileScreen = ({ route, navigation }) => {
                     style={styles.msgButton}
                     onPress={() => navigation.navigate('Chat', { userId: profile?.user_id || userId, userName: profile?.full_name })}
                 />
+            </View>
+
+            <View style={[styles.buttonRow, { marginTop: -12, flexDirection: 'row', gap: 10 }]}>
+                <TouchableOpacity
+                    style={[styles.smallButton, { borderColor: '#ef4444' }]}
+                    onPress={() => handleBlockUser()}
+                >
+                    <Text style={[styles.smallButtonText, { color: '#ef4444' }]}>Bloklash</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.smallButton, { borderColor: '#6b7280' }]}
+                    onPress={() => handleReportUser()}
+                >
+                    <Text style={[styles.smallButtonText, { color: '#6b7280' }]}>Shikoyat qilish</Text>
+                </TouchableOpacity>
+            </View>
+
+            <View style={[styles.buttonRow, { marginTop: -12, flexDirection: 'row', gap: 10 }]}>
+                <TouchableOpacity
+                    style={[styles.smallButton, { borderColor: '#ef4444' }]}
+                    onPress={() => handleBlockUser()}
+                >
+                    <Text style={[styles.smallButtonText, { color: '#ef4444' }]}>Bloklash</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.smallButton, { borderColor: '#6b7280' }]}
+                    onPress={() => handleReportUser()}
+                >
+                    <Text style={[styles.smallButtonText, { color: '#6b7280' }]}>Shikoyat qilish</Text>
+                </TouchableOpacity>
             </View>
 
             <View style={styles.tabsContainer}>
@@ -270,6 +348,18 @@ const styles = StyleSheet.create({
     msgButton: {
         height: 40,
         borderRadius: 8,
+    },
+    smallButton: {
+        flex: 1,
+        height: 36,
+        borderWidth: 1,
+        borderRadius: 8,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    smallButtonText: {
+        fontSize: 13,
+        fontWeight: '600',
     },
     tabsContainer: {
         flexDirection: 'row',

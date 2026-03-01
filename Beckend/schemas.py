@@ -141,3 +141,29 @@ class Review(ReviewBase):
 
     class Config:
         from_attributes = True
+
+class BlockedUserBase(BaseModel):
+    blocked_id: int
+
+class BlockedUser(BlockedUserBase):
+    id: int
+    blocker_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class ReportBase(BaseModel):
+    reported_user_id: Optional[int] = None
+    item_id: Optional[int] = None
+    reason: str
+    details: Optional[str] = None
+
+class Report(ReportBase):
+    id: int
+    reporter_id: int
+    created_at: datetime
+    is_resolved: bool
+
+    class Config:
+        from_attributes = True

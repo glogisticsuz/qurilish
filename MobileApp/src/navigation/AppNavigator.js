@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Home, Package, MessageCircle, User, PlusCircle } from 'lucide-react-native';
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
+import RNAsyncStorage from '@react-native-async-storage/async-storage';
 import HomeScreen from '../screens/HomeScreen';
 import LoginScreen from '../screens/LoginScreen';
 import VerifyScreen from '../screens/VerifyScreen';
@@ -28,8 +29,8 @@ const BottomTabs = () => {
                 tabBarStyle: { height: 75, paddingBottom: 12, borderTopWidth: 0, backgroundColor: '#fff', elevation: 20, shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 10 },
                 tabBarActiveTintColor: '#7c3aed',
                 tabBarInactiveTintColor: '#9ca3af',
-                headerShown: Boolean(false),
-                tabBarShowLabel: Boolean(true),
+                headerShown: false,
+                tabBarShowLabel: true,
             }}
         >
             <Tab.Screen
@@ -57,7 +58,7 @@ const BottomTabs = () => {
                             <PlusCircle color="#fff" size={28} />
                         </View>
                     ),
-                    tabBarShowLabel: Boolean(false),
+                    tabBarShowLabel: false,
                 }}
                 listeners={({ navigation }) => ({
                     tabPress: (e) => {
@@ -87,9 +88,38 @@ const BottomTabs = () => {
 };
 
 const AppNavigator = () => {
+    const [isLoading, setIsLoading] = useState(true);
+    const [userToken, setUserToken] = useState(null);
+
+    useEffect(() => {
+        const bootstrapAsync = async () => {
+            let token;
+            try {
+                token = await RNAsyncStorage.getItem('token');
+            } catch (e) {
+                console.error('Restoring token failed', e);
+            }
+            setUserToken(token);
+            setIsLoading(false);
+        };
+
+        bootstrapAsync();
+    }, []);
+
+    if (isLoading) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#7c3aed" />
+            </View>
+        );
+    }
+
     return (
         <NavigationContainer>
-            <Stack.Navigator screenOptions={{ headerShown: Boolean(false) }}>
+            <Stack.Navigator
+                screenOptions={{ headerShown: false }}
+                initialRouteName={userToken ? "Root" : "Login"}
+            >
                 <Stack.Screen name="Login" component={LoginScreen} />
                 <Stack.Screen name="Verify" component={VerifyScreen} />
                 <Stack.Screen name="Root" component={BottomTabs} />

@@ -42,6 +42,14 @@ const Home = () => {
     const navigate = useNavigate();
     const { t, lang } = useTranslation();
 
+    // Auto-redirect if already logged in
+    useEffect(() => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            navigate('/dashboard');
+        }
+    }, [navigate]);
+
     const categories = [
         { id: 0, name: 'Barchasi', icon: Globe },
         { id: 1, name: 'Ustalar', icon: HardHat },

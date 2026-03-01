@@ -33,6 +33,66 @@ const ChatScreen = ({ route, navigation }) => {
         return () => clearInterval(interval);
     }, [userId]);
 
+    const handleMoreOptions = () => {
+        Alert.alert(
+            "Amallar",
+            "Foydalanuvchi bilan bog'liq amallar",
+            [
+                { text: "Bloklash", style: "destructive", onPress: handleBlockUser },
+                { text: "Shikoyat qilish", onPress: handleReportUser },
+                { text: "Bekor qilish", style: "cancel" }
+            ]
+        );
+    };
+
+    const handleBlockUser = () => {
+        Alert.alert(
+            "Bloklash",
+            "Ushbu foydalanuvchini bloklamoqchimisiz?",
+            [
+                { text: "Bekor qilish", style: "cancel" },
+                {
+                    text: "Bloklash",
+                    style: "destructive",
+                    onPress: async () => {
+                        try {
+                            await api.post(`/users/${userId}/block`);
+                            Alert.alert("Muvaffaqiyatli", "Foydalanuvchi bloklandi");
+                            navigation.goBack();
+                        } catch (err) {
+                            Alert.alert("Xato", "Bloklashda xatolik yuz berdi");
+                        }
+                    }
+                }
+            ]
+        );
+    };
+
+    const handleReportUser = () => {
+        Alert.alert(
+            "Shikoyat qilish",
+            "Nima sababdan shikoyat qilmoqchisiz?",
+            [
+                { text: "Spam", onPress: () => submitReport("Spam") },
+                { text: "Taqiqlangan kontent", onPress: () => submitReport("Inappropriate Content") },
+                { text: "Bekor qilish", style: "cancel" }
+            ]
+        );
+    };
+
+    const submitReport = async (reason) => {
+        try {
+            await api.post('/reports', {
+                reported_user_id: userId,
+                reason: reason,
+                details: "Reported from chat screen"
+            });
+            Alert.alert("Rahmat", "Shikoyatingiz ko'rib chiqish uchun yuborildi");
+        } catch (err) {
+            Alert.alert("Xato", "Shikoyat yuborishda xatolik");
+        }
+    };
+
     const handleSend = async () => {
         if (!newMessage.trim()) return;
 
@@ -148,82 +208,86 @@ const ChatScreen = ({ route, navigation }) => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <ChevronLeft color="#111827" size={24} />
-                </TouchableOpacity>
-                <View style={styles.headerInfo}>
-                    <Text style={styles.headerName}>{userName}</Text>
-                    <Text style={styles.headerStatus}>online</Text>
-                </View>
-            </View>
-
-            <FlatList
-                ref={flatListRef}
-                data={messages}
-                keyExtractor={(item) => (item.id ? item.id.toString() : Math.random().toString())}
-                renderItem={({ item }) => (
-                    <View style={[
-                        styles.messageWrapper,
-                        item.sender_id === userId ? styles.receivedWrapper : styles.sentWrapper,
-                        item.is_pending ? { opacity: 0.7 } : null
-                    ]}>
-                        <View style={[
-                            styles.messageBubble,
-                            (item.sender_id === userId) ? styles.receivedBubble : styles.sentBubble,
-                            item.is_error ? { backgroundColor: '#fee2e2' } : null
-                        ]}>
-                            {item.image_url ? (
-                                <TouchableOpacity
-                                    onPress={() => setSelectedImage(item.image_url)}
-                                    disabled={item.is_pending}
-                                >
-                                    <View>
-                                        <Image
-                                            source={{ uri: item.image_url }}
-                                            style={styles.messageImage}
-                                            resizeMode="contain"
-                                        />
-                                        {item.is_pending && (
-                                            <View style={styles.loadingOverlay}>
-                                                <ActivityIndicator size="large" color="#fff" />
-                                            </View>
-                                        )}
-                                    </View>
-                                </TouchableOpacity>
-                            ) : null}
-                            {item.content ? (
-                                <Text style={[
-                                    styles.messageText,
-                                    item.sender_id !== userId ? styles.sentMessageText : null
-                                ]}>
-                                    {item.content}
-                                </Text>
-                            ) : null}
-                            <View style={styles.timeWrapper}>
-                                <Text style={[
-                                    styles.messageTime,
-                                    item.sender_id !== userId ? styles.sentMessageTime : null
-                                ]}>
-                                    {item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                                </Text>
-                                {item.sender_id !== userId && (
-                                    item.is_pending ? <Text style={styles.statusIcon}>🕒</Text> :
-                                        item.is_error ? <Text style={styles.statusIcon}>⚠️</Text> :
-                                            <Text style={styles.statusIcon}>✓</Text>
-                                )}
-                            </View>
-                        </View>
-                    </View>
-                )}
-                contentContainerStyle={styles.listContent}
-                onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-            />
-
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+                style={{ flex: 1 }}
+                keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
             >
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                        <ChevronLeft color="#111827" size={24} />
+                    </TouchableOpacity>
+                    <View style={styles.headerInfo}>
+                        <Text style={styles.headerName}>{userName}</Text>
+                        <Text style={styles.headerStatus}>online</Text>
+                    </View>
+                    <TouchableOpacity onPress={handleMoreOptions} style={styles.moreButton}>
+                        <Text style={styles.moreButtonText}>•••</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <FlatList
+                    ref={flatListRef}
+                    data={messages}
+                    keyExtractor={(item) => (item.id ? item.id.toString() : Math.random().toString())}
+                    renderItem={({ item }) => (
+                        <View style={[
+                            styles.messageWrapper,
+                            item.sender_id === userId ? styles.receivedWrapper : styles.sentWrapper,
+                            item.is_pending ? { opacity: 0.7 } : null
+                        ]}>
+                            <View style={[
+                                styles.messageBubble,
+                                (item.sender_id === userId) ? styles.receivedBubble : styles.sentBubble,
+                                item.is_error ? { backgroundColor: '#fee2e2' } : null
+                            ]}>
+                                {item.image_url ? (
+                                    <TouchableOpacity
+                                        onPress={() => setSelectedImage(item.image_url)}
+                                        disabled={item.is_pending}
+                                    >
+                                        <View>
+                                            <Image
+                                                source={{ uri: item.image_url }}
+                                                style={styles.messageImage}
+                                                resizeMode="contain"
+                                            />
+                                            {item.is_pending && (
+                                                <View style={styles.loadingOverlay}>
+                                                    <ActivityIndicator size="large" color="#fff" />
+                                                </View>
+                                            )}
+                                        </View>
+                                    </TouchableOpacity>
+                                ) : null}
+                                {item.content ? (
+                                    <Text style={[
+                                        styles.messageText,
+                                        item.sender_id !== userId ? styles.sentMessageText : null
+                                    ]}>
+                                        {item.content}
+                                    </Text>
+                                ) : null}
+                                <View style={styles.timeWrapper}>
+                                    <Text style={[
+                                        styles.messageTime,
+                                        item.sender_id !== userId ? styles.sentMessageTime : null
+                                    ]}>
+                                        {item.created_at ? new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                                    </Text>
+                                    {item.sender_id !== userId && (
+                                        item.is_pending ? <Text style={styles.statusIcon}>🕒</Text> :
+                                            item.is_error ? <Text style={styles.statusIcon}>⚠️</Text> :
+                                                <Text style={styles.statusIcon}>✓</Text>
+                                    )}
+                                </View>
+                            </View>
+                        </View>
+                    )}
+                    contentContainerStyle={styles.listContent}
+                    onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
+                />
+
                 <View style={styles.inputContainer}>
                     <TouchableOpacity
                         style={styles.imageButton}
@@ -241,12 +305,12 @@ const ChatScreen = ({ route, navigation }) => {
                         placeholder="Xabar yozing..."
                         value={newMessage}
                         onChangeText={setNewMessage}
-                        multiline={Boolean(true)}
+                        multiline={true}
                     />
                     <TouchableOpacity
-                        style={[styles.sendButton, Boolean(!newMessage.trim()) ? styles.sendButtonDisabled : null]}
+                        style={[styles.sendButton, !newMessage.trim() ? styles.sendButtonDisabled : null]}
                         onPress={handleSend}
-                        disabled={Boolean(!newMessage.trim())}
+                        disabled={!newMessage.trim()}
                     >
                         <Send color="#fff" size={20} />
                     </TouchableOpacity>
@@ -295,6 +359,14 @@ const styles = StyleSheet.create({
     backButton: {
         padding: 8,
         marginRight: 8,
+    },
+    moreButton: {
+        padding: 8,
+    },
+    moreButtonText: {
+        fontSize: 18,
+        color: '#6b7280',
+        fontWeight: 'bold',
     },
     headerInfo: {
         flex: 1,

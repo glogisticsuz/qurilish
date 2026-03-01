@@ -1,4 +1,5 @@
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form, Body, Request
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -44,6 +45,60 @@ app.include_router(admin_ads.router)
 @app.get("/")
 async def root():
     return {"message": "Welcome to HamkorQurilish API"}
+
+@app.get("/privacy-policy", response_class=HTMLResponse)
+@app.get("/api/privacy-policy", response_class=HTMLResponse)
+async def privacy_policy():
+    html_content = """
+    <!DOCTYPE html>
+    <html lang="uz">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>HamkorQurilish - Maxfiylik Siyosati</title>
+        <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 800px; margin: 0 auto; padding: 40px 20px; background-color: #f9fafb; }
+            .container { background: white; padding: 40px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+            h1 { color: #7c3aed; border-bottom: 2px solid #f3f4f6; padding-bottom: 10px; }
+            h3 { color: #111827; margin-top: 30px; }
+            p, li { color: #4b5563; }
+            .footer { margin-top: 50px; padding-top: 20px; border-top: 1px solid #f3f4f6; font-size: 0.9em; color: #9ca3af; text-align: center; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>Maxfiylik Siyosati (Privacy Policy)</h1>
+            <p><strong>Oxirgi yangilangan sana:</strong> 1-mart, 2026-yil</p>
+            
+            <p>"HamkorQurilish" jamoasi sizning maxfiyligingizni hurmat qiladi va himoya qiladi. Ushbu Maxfiylik siyosati bizning mobil ilovamiz orqali qanday ma'lumotlar to'planishi, foydalanilishi va himoya qilinishi haqida ma'lumot beradi.</p>
+
+            <h3>1. Ma'lumotlarni to'plash va ulardan foydalanish</h3>
+            <p>Ilovadan foydalanish jarayonida biz quyidagi hollarda ruxsat so'rashimiz mumkin:</p>
+            <ul>
+                <li><strong>Kamera:</strong> Ilovaning asosiy funksiyalarini bajarish uchun (masalan, profil rasmini yuklash, qurilish ob'ektlari rasmlarini olish yoki xabarlarda rasm yuborish) kameradan foydalanishga ruxsat talab qilinadi. Kamera faqatgina foydalanuvchi bevosita rasmga olish tugmasini bosganida ishga tushadi.</li>
+                <li><strong>Galereya/Xotira:</strong> Qurilmangiz xotirasidagi mavjud rasmlarni tanlash va yuklash uchun foydalaniladi.</li>
+            </ul>
+
+            <h3>2. Ma'lumotlar xavfsizligi</h3>
+            <p>Sizning shaxsiy ma'lumotlaringiz (ism, telefon raqami va rasm) xavfsiz serverlarda saqlanadi. Biz ma'lumotlaringiz xavfsizligini ta'minlash uchun zamonaviy shifrlash (encryption) usullaridan foydalanamiz.</p>
+
+            <h3>3. UGC Safety (Foydalanuvchi xavfsizligi)</h3>
+            <p>Ilovada foydalanuvchilar bir-birini bloklash va nojo'ya kontent ustidan shikoyat qilish imkoniyatiga ega. Biz har qanday haqoratli yoki zo'ravonlikni targ'ib qiluvchi kontentni 24 soat ichida ko'rib chiqamiz va kerakli choralarni ko'ramiz.</p>
+
+            <h3>4. Ma'lumotlarni uchinchi shaxslarga bermaslik</h3>
+            <p>Biz foydalanuvchilarning shaxsiy ma'lumotlarini uchinchi shaxslarga sotmaymiz, almashmaymiz va tarqatmaymiz. Ma'lumotlar faqatgina ilovaning ishlashi va sizga xizmat ko'rsatish uchun foydalaniladi.</p>
+
+            <h3>5. Bog'lanish</h3>
+            <p>Agar ushbu maxfiylik siyosati bo'yicha savollaringiz bo'lsa, ilova ichidagi qo'llab-quvvatlash qismi orqali biz bilan bog'laning.</p>
+
+            <div class="footer">
+                <strong>HamkorQurilish</strong> — Qurilishda ishonchli hamkoringiz.
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return html_content
 
 @app.post("/auth/login", response_model=schemas.LoginRequest)
 async def login(request: schemas.LoginRequest, db: Session = Depends(get_db)):
@@ -277,13 +332,23 @@ async def upload_portfolio(
 async def get_all_items(
     category_id: Optional[int] = None,
     item_type: Optional[str] = None,
-    db: Session = Depends(database.get_db)
+    db: Session = Depends(database.get_db),
+    current_user: Optional[models.User] = Depends(auth.get_current_user_optional) # Need optional auth helper
 ):
     query = db.query(models.PortfolioItem).join(models.Profile)
+    
     if category_id:
         query = query.filter(models.PortfolioItem.category_id == category_id)
     if item_type:
         query = query.filter(models.PortfolioItem.item_type == item_type)
+        
+    # Filter out items from blocked users if logged in
+    if current_user:
+        blocked_ids = db.query(models.BlockedUser.blocked_id).filter(models.BlockedUser.blocker_id == current_user.id).all()
+        blocked_ids = [r[0] for r in blocked_ids]
+        if blocked_ids:
+            query = query.filter(models.Profile.user_id.notin_(blocked_ids))
+            
     return query.order_by(models.PortfolioItem.id.desc()).all()
 
 @app.post("/items/{item_id}/view")
@@ -389,7 +454,13 @@ async def get_my_chats(db: Session = Depends(get_db), current_user: models.User 
     recv_from = db.query(models.Message.sender_id).filter(models.Message.receiver_id == current_user.id).distinct()
     
     user_ids = [r[0] for r in sent_to.all()] + [r[0] for r in recv_from.all()]
-    user_ids = list(set(user_ids)) # Unique IDs
+    # Unique IDs
+    user_ids = list(set(user_ids)) 
+    
+    # Filter out blocked users
+    blocked_ids = db.query(models.BlockedUser.blocked_id).filter(models.BlockedUser.blocker_id == current_user.id).all()
+    blocked_ids = [r[0] for r in blocked_ids]
+    user_ids = [uid for uid in user_ids if uid not in blocked_ids]
     
     result = []
     for uid in user_ids:
@@ -524,6 +595,41 @@ async def create_review(user_id: int, review: schemas.ReviewBase, db: Session = 
 @app.get("/reviews/{user_id}", response_model=List[schemas.Review])
 async def get_user_reviews(user_id: int, db: Session = Depends(get_db)):
     return db.query(models.Review).filter(models.Review.to_user_id == user_id).order_by(models.Review.created_at.desc()).all()
+
+# --- UGC Safety: Block and Report ---
+
+@app.post("/users/{user_id}/block")
+async def block_user(user_id: int, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    if current_user.id == user_id:
+        raise HTTPException(status_code=400, detail="O'zingizni blocklay olmaysiz")
+    
+    # Check if already blocked
+    existing = db.query(models.BlockedUser).filter(
+        models.BlockedUser.blocker_id == current_user.id,
+        models.BlockedUser.blocked_id == user_id
+    ).first()
+    
+    if existing:
+        return {"message": "Foydalanuvchi allaqachon blocklangan"}
+    
+    new_block = models.BlockedUser(blocker_id=current_user.id, blocked_id=user_id)
+    db.add(new_block)
+    db.commit()
+    return {"message": "Foydalanuvchi blocklandi"}
+
+@app.post("/reports", response_model=schemas.Report)
+async def create_report(report: schemas.ReportBase, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    new_report = models.Report(
+        reporter_id=current_user.id,
+        reported_user_id=report.reported_user_id,
+        item_id=report.item_id,
+        reason=report.reason,
+        details=report.details
+    )
+    db.add(new_report)
+    db.commit()
+    db.refresh(new_report)
+    return new_report
 
 # Note: Admin and Ad endpoints have been moved to admin_ads.py
 # If they need to be included in the main app, use app.include_router

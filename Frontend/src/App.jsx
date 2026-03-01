@@ -6,6 +6,7 @@ import ProfileEdit from './pages/ProfileEdit';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminLogin from './pages/AdminLogin';
 import Terms from './pages/Terms';
+import PrivacyPolicy from './pages/PrivacyPolicy';
 import PublicProfile from './pages/PublicProfile';
 import Chat from './pages/Chat';
 import Messages from './pages/Messages';
@@ -71,6 +72,7 @@ function App() {
           />
           <Route path="/admin/login" element={<AdminLogin />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>

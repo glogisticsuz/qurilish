@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, Image, TouchableOpacity, Dimensions, Share, Modal, FlatList, Linking, TextInput, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft, MapPin, MessageCircle, Share2, ShieldCheck, Heart, Star, X, Calendar, Eye } from 'lucide-react-native';
+import { ChevronLeft, MapPin, MessageCircle, Share2, ShieldCheck, Heart, Star, X, Calendar, Eye, Flag } from 'lucide-react-native';
 import { Button, Input, Spinner } from '../components/UIComponents';
 import api, { reviewApi, authApi } from '../api/api';
+import { Alert } from 'react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -15,6 +16,32 @@ const ProductDetailScreen = ({ route, navigation }) => {
     const [newReview, setNewReview] = useState({ stars: 5, text: '' });
     const [submittingReview, setSubmittingReview] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
+
+    const handleReportItem = () => {
+        Alert.alert(
+            "Shikoyat qilish",
+            "Ushbu e'lon bo'yicha shikoyat qilmoqchimisiz?",
+            [
+                { text: "Spam", onPress: () => submitReport("Spam") },
+                { text: "Taqiqlangan kontent", onPress: () => submitReport("Inappropriate Content") },
+                { text: "Bekor qilish", style: "cancel" }
+            ]
+        );
+    };
+
+    const submitReport = async (reason) => {
+        try {
+            await api.post('/reports', {
+                item_id: item.id,
+                reported_user_id: item.userId || item.profile?.user_id || item.profile_id,
+                reason: reason,
+                details: `Reported from product detail: ${item.title}`
+            });
+            Alert.alert("Rahmat", "Shikoyatingiz ko'rib chiqish uchun yuborildi");
+        } catch (err) {
+            Alert.alert("Xato", "Shikoyat yuborishda xatolik");
+        }
+    };
 
     React.useEffect(() => {
         fetchReviews();
@@ -115,6 +142,9 @@ const ProductDetailScreen = ({ route, navigation }) => {
                             <ChevronLeft color="#111827" size={24} />
                         </TouchableOpacity>
                         <View style={styles.rightActions}>
+                            <TouchableOpacity style={styles.circleButton} onPress={handleReportItem}>
+                                <Flag color="#6b7280" size={20} />
+                            </TouchableOpacity>
                             <TouchableOpacity style={styles.circleButton} onPress={onShare}>
                                 <Share2 color="#111827" size={20} />
                             </TouchableOpacity>

@@ -48,7 +48,11 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return encoded_jwt
 
 async def send_telegram_otp(phone: str, db: Session, telegram_id: Optional[int] = None):
-    otp = "".join(random.choices(string.digits, k=6))
+    # Google Play Reviewer Bypass
+    if phone == "+998990001111":
+        otp = "123456"
+    else:
+        otp = "".join(random.choices(string.digits, k=6))
     
     # Save to DB
     user = db.query(models.User).filter(models.User.phone == phone).first()
@@ -60,7 +64,7 @@ async def send_telegram_otp(phone: str, db: Session, telegram_id: Optional[int] 
     print(f"OTP for {phone}: {otp}")
     
     # If we have telegram_id, we can send it directly
-    if telegram_id:
+    if phone != "+998990001111" and telegram_id:
         url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
         async with httpx.AsyncClient(timeout=5.0) as client:
             try:
@@ -92,3 +96,16 @@ def get_current_user(db: Session = Depends(database.get_db), token: str = Depend
     if user is None:
         raise credentials_exception
     return user
+
+async def get_current_user_optional(db: Session = Depends(database.get_db), token: Optional[str] = Depends(oauth2_scheme)):
+    if not token:
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        phone: str = payload.get("sub")
+        if phone is None:
+            return None
+        user = db.query(models.User).filter(models.User.phone == phone).first()
+        return user
+    except JWTError:
+        return None

@@ -27,6 +27,8 @@ const ProfileScreen = ({ navigation }) => {
             setPortfolio(portfolioRes.data || []);
         } catch (error) {
             console.error('Fetch profile data error:', error);
+            const errorDetail = error.response?.data?.detail || error.message;
+            Alert.alert('Xato', `Profil ma'lumotlarini yuklashda xatolik: ${errorDetail}`);
         } finally {
             setLoading(false);
             setRefreshing(false);
